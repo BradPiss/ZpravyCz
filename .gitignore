@@ -1,0 +1,18 @@
+# Virtuální prostředí
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Databáze
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+
+# VS Code nastavení
+.vscode/
