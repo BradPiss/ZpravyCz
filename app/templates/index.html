@@ -70,10 +70,17 @@
       
       <div id="newsList">
         {% for article in list_articles %}
-        <article class="list-article">
+        <article class="list-article {% if loop.index0 >= 6 %}hidden-article{% endif %}">
           <div style="flex:1">
             <div style="margin-bottom:8px">
                 <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+                {% if article.category %}
+                <span style="color:var(--blue); font-weight:700; font-size:13px; text-transform:uppercase; margin-left:8px;">
+                     <a href="{{ url_for('category_detail', category_id=article.category.id) }}" style="text-decoration:none; color:inherit;">
+                        {{ article.category.name }}
+                    </a>
+                </span>
+                {% endif %}
             </div>
             <div class="clickable-area">
               <a href="{{ url_for('article_detail', article_id=article.id) }}" style="text-decoration:none;">
@@ -92,6 +99,42 @@
         </article>
         {% endfor %}
       </div>
+
+      {% if list_articles|length > 6 %}
+      <div class="load-more-wrapper" id="hpLoadMoreContainer" style="text-align:center; margin-top:32px">
+            <button class="load-more-btn" id="hpLoadMoreBtn" style="margin: 0 auto;">
+              <span>Zobrazit další</span>
+              <span>▼</span>
+            </button>
+      </div>
+
+      <script>
+        document.getElementById('hpLoadMoreBtn').addEventListener('click', function() {
+            // 1. Najdeme VŠECHNY články, které jsou momentálně skryté
+            const hiddenArticles = document.querySelectorAll('#newsList .hidden-article');
+            
+            // 2. Vezmeme z nich PRVNÍCH 6 (další várka)
+            const nextBatch = Array.from(hiddenArticles).slice(0, 6);
+            
+            // 3. Odkryjeme tuto várku
+            nextBatch.forEach(article => {
+                article.classList.remove('hidden-article');
+            });
+            
+            // 4. Zkontrolujeme, jestli ještě něco zbylo skryté
+            // Pokud počet skrytých je 0, schováme tlačítko
+            const remainingHidden = document.querySelectorAll('#newsList .hidden-article');
+            if (remainingHidden.length === 0) {
+                document.getElementById('hpLoadMoreContainer').style.display = 'none';
+            }
+        });
+      </script>
+      {% endif %}
+      
+      {% if not list_articles %}
+        <p style="color:var(--muted); padding:20px 0;">Žádné další zprávy.</p>
+      {% endif %}
+
     </div>
 
     <aside class="support-box" style="width:300px; flex-shrink:0;">
