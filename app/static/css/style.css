@@ -214,4 +214,59 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     align-items: flex-start;
     transition: background-color 0.2s ease;
 }
-/* ... atd ... */
+
+/* --- LOGIN DROPDOWN --- */
+.signin-wrap { position: relative; }
+.signin-btn { background: none; border: 0; color: var(--blue); font-weight: 700; cursor: pointer; font-size: 15px; padding: 8px; transition: opacity 0.3s ease; }
+.signin-btn:hover { opacity: 0.8; }
+
+.dropdown-content {
+    display: none; /* Skryto defaultně */
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-radius: 8px;
+    width: 260px;
+    padding: 16px;
+    z-index: 1000;
+}
+
+.dropdown-content.show { display: block; }
+
+.dropdown-content input {
+    width: 100%;
+    box-sizing: border-box; /* Aby padding nerozbil šířku */
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 12px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.dropdown-content button {
+    width: 100%;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 6px;
+    padding: 10px;
+    font-weight: 700;
+    border: 0;
+    cursor: pointer;
+    font-size: 14px;
+}
+.dropdown-content button:hover { opacity: 0.9; }
+
+.register-link {
+    margin-top: 12px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--muted);
+}
+.register-link a { color: var(--blue); text-decoration: none; font-weight: 600; }
+.register-link a:hover { text-decoration: underline; }
