@@ -11,9 +11,9 @@ class ArticleVersion(Base):
     id = Column(Integer, primary_key=True, index=True)
     article_id = Column(Integer, ForeignKey("articles.id"))
     version_number = Column(Integer)
-    title = Column(String)
+    title = Column(String(200))
     content = Column(Text)
-    perex = Column(String)
+    perex = Column(String(500))
     created_at = Column(DateTime, default=datetime.utcnow)
 
     article = relationship("Article", back_populates="versions")

@@ -8,7 +8,7 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    description = Column(String)
+    name = Column(String(100), index=True)
+    description = Column(String(500))
 
     articles = relationship("Article", back_populates="category")

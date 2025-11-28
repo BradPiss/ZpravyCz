@@ -11,10 +11,10 @@ class Article(Base):
     __tablename__ = "articles"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    perex = Column(String)
+    title = Column(String(200))
+    perex = Column(String(500))
     content = Column(Text)
-    image_url = Column(String)
+    image_url = Column(String(2048))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     status = Column(Enum(ArticleStatus), default=ArticleStatus.DRAFT)
