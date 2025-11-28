@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} | Zprávy.cz{% endblock %}
+
+{% block content %}
+<article class="article-page" style="display:block; max-width:800px; margin:0 auto; padding:40px 20px;">
+    
+    <a href="/" class="back-btn" style="display:inline-flex; align-items:center; gap:8px; color:var(--blue); font-weight:600; font-size:15px; text-decoration:none; margin-bottom:32px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/>
+        </svg>
+        <span>Zpět na hlavní stránku</span>
+    </a>
+
+    <div class="article-meta" style="display:flex; align-items:center; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
+        <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+        <span class="article-category" style="color:var(--blue); font-weight:700; font-size:13px; text-transform:uppercase;">
+            {% if article.category %}
+            <a href="{{ url_for('category_detail', category_id=article.category.id) }}" style="text-decoration:none; color:inherit;">
+            {{ article.category.name }}
+    </a>
+    {% else %}
+    Zprávy
+    {% endif %}
+        </span>
+        <span class="article-author" style="color:var(--muted); font-size:14px;">
+            {{ article.author.name }}
+        </span>
+    </div>
+
+    <h1 class="article-title" style="font-size:38px; font-weight:800; line-height:1.15; color:var(--text); margin:0 0 24px 0;">
+        {{ article.title }}
+    </h1>
+
+    <div class="article-lead" style="font-size:18px; line-height:1.6; color:var(--preview-text); margin-bottom:32px; font-weight:500;">
+        {{ article.perex }}
+    </div>
+
+    {% if article.image_url %}
+    <img class="article-image" src="{{ article.image_url }}" alt="{{ article.title }}" 
+         style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:10px; margin-bottom:16px;">
+    <p class="article-image-caption" style="font-size:13px; color:var(--muted); font-style:italic; margin-bottom:40px;">
+        Ilustrační snímek
+    </p>
+    {% endif %}
+
+    <div class="article-content" style="font-size:17px; line-height:1.75; color:var(--text);">
+        {{ article.content | safe }}
+    </div>
+
+    <div class="article-tags" style="display:flex; flex-wrap:wrap; gap:10px; margin-top:48px; padding-top:32px; border-top:1px solid var(--border);">
+        {% for tag in article.tags %}
+        <span class="article-tag" style="background:var(--border); color:var(--text); padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600;">
+            {{ tag.name }}
+        </span>
+        {% endfor %}
+    </div>
+
+    {% if related_articles %}
+    <div class="related-articles" style="margin-top:60px; padding-top:40px; border-top:2px solid var(--border);">
+        <h2 class="related-title" style="font-size:24px; font-weight:800; color:var(--text); margin-bottom:28px;">
+            Související články
+        </h2>
+        <div class="related-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:24px;">
+            {% for rel in related_articles %}
+            <div class="related-card">
+                <a href="{{ url_for('article_detail', article_id=rel.id) }}" style="text-decoration:none;">
+                    <img src="{{ rel.image_url }}" alt="{{ rel.title }}" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px; margin-bottom:12px;">
+                    <div class="related-card-time" style="font-size:12px; color:var(--muted); margin-bottom:8px;">
+                        Dnes {{ rel.created_at.strftime('%H:%M') }}
+                    </div>
+                    <div class="related-card-title" style="font-size:16px; font-weight:700; line-height:1.3; color:var(--blue);">
+                        {{ rel.title }}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</article>
+{% endblock %}

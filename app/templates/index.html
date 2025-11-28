@@ -3,6 +3,120 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    <h2>Nejnovější zprávy</h2>
-    <p>Vítejte na našem portálu.</p>
+{% set main_article = articles[0] if articles|length > 0 else none %}
+{% set secondary_articles = articles[1:4] if articles|length > 1 else [] %}
+{% set list_articles = articles[4:] if articles|length > 4 else [] %}
+
+{% if main_article %}
+<section class="main-article-grid" style="display:grid;grid-template-columns:0.8fr 1fr;gap:32px;margin-bottom:40px;align-items:start">
+  <div class="clickable-area">
+    <a href="{{ url_for('article_detail', article_id=main_article.id) }}">
+      <img class="img-main" src="{{ main_article.image_url }}" alt="{{ main_article.title }}" 
+           style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px;">
+    </a>
+  </div>
+  <div style="padding-top:4px">
+    <div style="margin-bottom:10px">
+        <span class="news-time">Dnes {{ main_article.created_at.strftime('%H:%M') }}</span>
+    </div>
+    <div class="clickable-area">
+      <h1>
+          <a href="{{ url_for('article_detail', article_id=main_article.id) }}" class="headline-main" style="font-size:30px;font-weight:800;line-height:1.1;margin:0 0 16px;display:block;color:var(--blue);text-decoration:none;">
+              {{ main_article.title }}
+          </a>
+      </h1>
+    </div>
+    <p style="color:var(--preview-text);font-size:15.5px;line-height:1.6;">
+        {{ main_article.perex }} 
+        <a href="{{ url_for('article_detail', article_id=main_article.id) }}" class="read-more-link" style="color:var(--blue);font-weight:700;text-decoration:none;">Celý článek</a>
+    </p>
+  </div>
+</section>
+{% endif %}
+
+{% if secondary_articles %}
+<section class="secondary-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:28px;margin-bottom:50px">
+  {% for article in secondary_articles %}
+  <article>
+    <div class="clickable-area">
+      <a href="{{ url_for('article_detail', article_id=article.id) }}">
+          <img class="img-thumb" src="{{ article.image_url }}" alt="{{ article.title }}" 
+               style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px;">
+      </a>
+      <div style="margin-top:10px">
+          <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+      </div>
+      <h2>
+          <a href="{{ url_for('article_detail', article_id=article.id) }}" class="headline-sub" style="font-size:18px;font-weight:800;margin:8px 0;display:block;color:var(--blue);text-decoration:none;">
+              {{ article.title }}
+          </a>
+      </h2>
+    </div>
+    <p style="color:var(--preview-text);font-size:14px;line-height:1.5;">
+        {{ article.perex[:90] }}...
+    </p>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+
+<section style="margin-top:60px">
+  <div class="news-support-container" style="display:flex; gap:28px; align-items:start;">
+    
+    <div class="news-list-wrapper" style="flex:1;">
+      <h2 class="section-title" style="font-size:28px;font-weight:800;border-bottom:3px solid var(--blue);padding-bottom:16px;margin-bottom:24px;">
+          Další zprávy
+      </h2>
+      
+      <div id="newsList">
+        {% for article in list_articles %}
+        <article class="list-article">
+          <div style="flex:1">
+            <div style="margin-bottom:8px">
+                <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+            </div>
+            <div class="clickable-area">
+              <a href="{{ url_for('article_detail', article_id=article.id) }}" style="text-decoration:none;">
+                  <h3 class="headline-list">{{ article.title }}</h3>
+              </a>
+            </div>
+            <p class="list-preview">
+                {{ article.perex }}
+            </p>
+          </div>
+          <div class="clickable-area">
+            <a href="{{ url_for('article_detail', article_id=article.id) }}">
+                <img class="img-list" src="{{ article.image_url }}" alt="{{ article.title }}" />
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="support-box" style="width:300px; flex-shrink:0;">
+      <h3 class="support-title">Podpořte nás ❤️</h3>
+      <p class="support-description">
+        Díky vaší podpoře můžeme poskytovat kvalitní nezávislé zpravodajství bez reklam.
+      </p>
+      
+      <div class="amount-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <button class="amount-btn" style="padding:10px;border:2px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;">50 Kč</button>
+        <button class="amount-btn" style="padding:10px;border:2px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;">100 Kč</button>
+      </div>
+      
+      <button class="support-submit" style="width:100%;padding:14px;background:var(--blue);color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;">
+          Podpořit
+      </button>
+    </aside>
+  </div>
+</section>
+
+<style>
+@media (max-width:900px){
+    .main-article-grid{grid-template-columns:1fr !important}
+    .news-support-container{flex-direction:column}
+    .support-box{width:100% !important; max-width:500px}
+}
+</style>
 {% endblock %}

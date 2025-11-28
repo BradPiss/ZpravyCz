@@ -2,15 +2,73 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Zprávy{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Zprávy.cz{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 </head>
 <body>
-    <header>
-        <h1>Zprávy.cz</h1>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo-wrap">
+                <a href="/" style="text-decoration:none">
+                    <img id="siteLogo" class="site-logo" src="https://images2.imgbox.com/37/bf/OviUSHGY_o.png" alt="zprávy.cz logo" />
+                </a>
+            </div>
+
+            <div class="header-date" id="currentDate">Dnes je ...</div>
+
+            <div style="display:flex;align-items:center;gap:16px">
+                <button id="themeToggle" class="theme-toggle" aria-label="Přepnout motiv">
+                    <svg id="themeIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M12 17q-2.075 0-3.538-1.463T7 12q0-2.075 1.463-3.538T12 7q2.075 0 3.538 1.463T17 12q0 2.075-1.463 3.538T12 17ZM2 13q-.425 0-.713-.288T1 12q0-.425.288-.713T2 11h2q.425 0 .713.288T5 12q0 .425-.288.713T4 13H2Zm18 0q-.425 0-.713-.288T19 12q0-.425.288-.713T20 11h2q.425 0 .713.288T23 12q0 .425-.288.713T22 13h-2Zm-8-8q-.425 0-.713-.288T11 4V2q0-.425.288-.713T12 1q.425 0 .713.288T13 2v2q0 .425-.288.713T12 5Zm0 18q-.425 0-.713-.288T11 22v-2q0-.425.288-.713T12 19q.425 0 .713.288T13 20v2q0 .425-.288.713T12 23ZM5.65 7.05L4.575 6q-.3-.275-.288-.7t.288-.725q.3-.3.725-.3t.7.3L7.05 5.65q.275.3.275.7t-.275.7q-.275.3-.687.288T5.65 7.05ZM18 19.425l-1.05-1.075q-.275-.3-.275-.713t.275-.687q.275-.3.688-.287t.712.287L19.425 18q.3.275.288.7t-.288.725q-.3.3-.725.3t-.7-.3ZM16.95 7.05q-.3-.275-.288-.687t.288-.713L18 4.575q.275-.3.7-.288t.725.288q.3.3.3.725t-.3.7L18.35 7.05q-.3.275-.7.275t-.7-.275ZM4.575 19.425q-.3-.3-.3-.725t.3-.7l1.075-1.05q.3-.275.712-.275t.688.275q.3.275.288.688t-.288.712L6 19.425q-.275.3-.7.288t-.725-.288Z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </header>
+
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        // LOGO URLS (z původního prototypu)
+        const logoLight = 'https://images2.imgbox.com/37/bf/OviUSHGY_o.png';
+        const logoDark = 'https://images2.imgbox.com/fa/46/yDCV87hg_o.png';
+        
+        // IKONY
+        const sunIcon = '<path d="M12 17q-2.075 0-3.538-1.463T7 12q0-2.075 1.463-3.538T12 7q2.075 0 3.538 1.463T17 12q0 2.075-1.463 3.538T12 17ZM2 13q-.425 0-.713-.288T1 12q0-.425.288-.713T2 11h2q.425 0 .713.288T5 12q0 .425-.288.713T4 13H2Zm18 0q-.425 0-.713-.288T19 12q0-.425.288-.713T20 11h2q.425 0 .713.288T23 12q0 .425-.288.713T22 13h-2Zm-8-8q-.425 0-.713-.288T11 4V2q0-.425.288-.713T12 1q.425 0 .713.288T13 2v2q0 .425-.288.713T12 5Zm0 18q-.425 0-.713-.288T11 22v-2q0-.425.288-.713T12 19q.425 0 .713.288T13 20v2q0 .425-.288.713T12 23ZM5.65 7.05L4.575 6q-.3-.275-.288-.7t.288-.725q.3-.3.725-.3t.7.3L7.05 5.65q.275.3.275.7t-.275.7q-.275.3-.687.288T5.65 7.05ZM18 19.425l-1.05-1.075q-.275-.3-.275-.713t.275-.687q.275-.3.688-.287t.712.287L19.425 18q.3.275.288.7t-.288.725q-.3.3-.725.3t-.7-.3ZM16.95 7.05q-.3-.275-.288-.687t.288-.713L18 4.575q.275-.3.7-.288t.725.288q.3.3.3.725t-.3.7L18.35 7.05q-.3.275-.7.275t-.7-.275ZM4.575 19.425q-.3-.3-.3-.725t.3-.7l1.075-1.05q.3-.275.712-.275t.688.275q.3.275.288.688t-.288.712L6 19.425q-.275.3-.7.288t-.725-.288Z"/>';
+        const moonIcon = '<path d="M9 3q1.868 0 3.51.708q1.643.709 2.857 1.924q1.215 1.214 1.924 2.856Q18 10.13 18 11.997q0 1.866-.709 3.51t-1.923 2.859q-1.215 1.216-2.858 1.925Q10.867 21 9 21q-.789 0-1.54-.136q-.752-.135-1.46-.445q1.902-1.561 2.951-3.756Q10 14.47 10 12T8.951 7.337Q7.901 5.142 6 3.58q.708-.31 1.46-.445Q8.21 3 9 3Z"/>';
+
+        // DATUM
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        let dateString = new Date().toLocaleDateString('cs-CZ', dateOptions);
+        document.getElementById('currentDate').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+
+        // LOGIKA PŘEPÍNÁNÍ
+        const htmlEl = document.documentElement;
+        const toggleBtn = document.getElementById('themeToggle');
+        const themeIconSvg = document.getElementById('themeIcon');
+        const siteLogo = document.getElementById('siteLogo');
+
+        // Načíst uložené téma
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        htmlEl.setAttribute('data-theme', currentTheme);
+        siteLogo.src = currentTheme === 'dark' ? logoDark : logoLight;
+        themeIconSvg.innerHTML = currentTheme === 'dark' ? moonIcon : sunIcon;
+
+        toggleBtn.addEventListener('click', () => {
+            const current = htmlEl.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            
+            htmlEl.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            
+            // Změna ikony a loga
+            siteLogo.src = next === 'dark' ? logoDark : logoLight;
+            themeIconSvg.innerHTML = next === 'dark' ? moonIcon : sunIcon;
+        });
+    </script>
 </body>
 </html>
