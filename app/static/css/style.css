@@ -215,31 +215,41 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     transition: background-color 0.2s ease;
 }
 
-/* --- LOGIN DROPDOWN --- */
+/* --- LOGIN & USER DROPDOWN --- */
 .signin-wrap { position: relative; }
 .signin-btn { background: none; border: 0; color: var(--blue); font-weight: 700; cursor: pointer; font-size: 15px; padding: 8px; transition: opacity 0.3s ease; }
 .signin-btn:hover { opacity: 0.8; }
 
 .dropdown-content {
-    display: none; /* Skryto defaultně */
+    display: none;
     position: absolute;
-    right: 0;
+    /* CENTROVÁNÍ VŮČI RODIČI */
     top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    
     margin-top: 10px;
     background: var(--bg);
     border: 1px solid var(--border);
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
     border-radius: 8px;
-    width: 260px;
+    width: 260px; /* Šířka pro login formulář */
     padding: 16px;
     z-index: 1000;
 }
 
+/* Specifická šířka pro menu uživatele (přepisuje tu nahoře, pokud je ID userDropdown) */
+#userDropdown {
+    width: 200px; /* Užší, stačí pro menu */
+    padding: 8px;
+}
+
 .dropdown-content.show { display: block; }
 
+/* Inputy a tlačítka v loginu */
 .dropdown-content input {
     width: 100%;
-    box-sizing: border-box; /* Aby padding nerozbil šířku */
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 6px;
     padding: 10px;
@@ -262,11 +272,46 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 }
 .dropdown-content button:hover { opacity: 0.9; }
 
-.register-link {
-    margin-top: 12px;
-    text-align: left;
-    font-size: 13px;
-    color: var(--muted);
-}
+.register-link { margin-top: 12px; text-align: left; font-size: 13px; color: var(--muted); }
 .register-link a { color: var(--blue); text-decoration: none; font-weight: 600; }
 .register-link a:hover { text-decoration: underline; }
+
+
+/* --- USER MENU ITEMS (JEDNOTNÝ VZHLED) --- */
+.user-menu-item {
+    display: block;
+    width: 100%;
+    box-sizing: border-box; /* Aby padding nerozbil šířku */
+    padding: 10px 12px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-bottom: 2px;
+}
+
+/* Jemný hover efekt (šedá, ne modrá) */
+.user-menu-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--blue); /* Text zmodrá */
+}
+[data-theme="dark"] .user-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Logout tlačítko - stejný tvar, jen oddělené čarou */
+.user-menu-item.logout {
+    color: #ef4444;
+    margin-top: 6px;
+    border-top: 1px solid var(--border);
+    border-radius: 6px; /* Stejné zaoblení jako ostatní */
+    padding-top: 12px; /* Větší mezera od čáry */
+}
+
+.user-menu-item.logout:hover {
+    background-color: rgba(239, 68, 68, 0.08); /* Jemně červené pozadí */
+    color: #dc2626;
+}

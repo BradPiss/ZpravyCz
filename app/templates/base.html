@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
 </head>
 <body>
-    <header class="site-header">
+ <header class="site-header">
         <div class="header-inner">
             <div class="logo-wrap">
                 <a href="/" style="text-decoration:none">
@@ -26,10 +26,22 @@
                 </button>
 
                 {% if user %}
-                    <div class="user-menu" style="display:flex; align-items:center; gap:12px;">
-                        <span style="font-weight:600; font-size:14px; margin-right:8px">{{ user.name }}</span>
-                        <a href="/logout" style="color:var(--blue); text-decoration:none; font-size:14px; font-weight:600;">Odhlásit</a>
+                    <div class="signin-wrap">
+                        <button id="userBtn" class="signin-btn">{{ user.name }} ▾</button>
+                        <div id="userDropdown" class="dropdown-content" style="width: 220px;">
+                            
+                            {% if user.role == 'admin' or user.role == 'editor' %}
+                                <a href="/admin/clanky" class="user-menu-item">Správa článků</a>
+                            {% endif %}
+                            
+                            {% if user.role == 'admin' %}
+                                <a href="/admin/uzivatele" class="user-menu-item">Správa uživatelů</a>
+                            {% endif %}
+                            
+                            <a href="/logout?next={{ request.url.path }}" class="user-menu-item logout">Odhlásit se</a>
+                        </div>
                     </div>
+
                 {% else %}
                     <div class="signin-wrap">
                         <button id="signinBtn" class="signin-btn">Přihlásit ▾</button>
@@ -37,7 +49,14 @@
                             
                             <div id="loginFormWrapper">
                                 <h3 style="margin:0 0 12px 0; font-size:16px; font-weight:700">Přihlášení</h3>
+                                
+                                <div id="loginError" style="display:none; color:red; font-size:13px; margin-bottom:10px; background:rgba(255,0,0,0.1); padding:8px; border-radius:4px;">
+                                    Špatný email nebo heslo.
+                                </div>
+
                                 <form action="/login" method="post">
+                                    <input type="hidden" name="next" value="{{ request.url.path }}">
+                                    
                                     <input type="email" name="username" placeholder="Email" required />
                                     <input type="password" name="password" placeholder="Heslo" required />
                                     <button type="submit">Přihlásit</button>
@@ -48,12 +67,14 @@
                             </div>
 
                             <div id="registerFormWrapper" style="display:none">
-                                <h3 style="margin:0 0 12px 0; font-size:16px; font-weight:700">Nová registrace</h3>
+                                <h3 style="margin:0 0 12px 0; font-size:16px; font-weight:700">Registrace</h3>
                                 <form action="/registrace" method="post">
+                                    <input type="hidden" name="next" value="{{ request.url.path }}">
+
                                     <input type="text" name="name" placeholder="Celé jméno" required />
                                     <input type="email" name="email" placeholder="Email" required />
                                     <input type="password" name="password" placeholder="Heslo" required />
-                                    <button type="submit" style="background:#22c55e">Vytvořit účet</button>
+                                    <button type="submit">Vytvořit účet</button>
                                 </form>
                                 <div class="register-link">
                                     Už máte účet? <a href="#" id="showLoginBtn">Přihlásit se</a>
@@ -72,11 +93,9 @@
     </main>
 
     <script>
-        // --- LOGO URLS ---
+        // --- LOGO & IKONY ---
         const logoLight = 'https://images2.imgbox.com/37/bf/OviUSHGY_o.png';
         const logoDark = 'https://images2.imgbox.com/fa/46/yDCV87hg_o.png';
-        
-        // --- IKONY ---
         const sunIcon = '<path d="M12 17q-2.075 0-3.538-1.463T7 12q0-2.075 1.463-3.538T12 7q2.075 0 3.538 1.463T17 12q0 2.075-1.463 3.538T12 17ZM2 13q-.425 0-.713-.288T1 12q0-.425.288-.713T2 11h2q.425 0 .713.288T5 12q0 .425-.288.713T4 13H2Zm18 0q-.425 0-.713-.288T19 12q0-.425.288-.713T20 11h2q.425 0 .713.288T23 12q0 .425-.288.713T22 13h-2Zm-8-8q-.425 0-.713-.288T11 4V2q0-.425.288-.713T12 1q.425 0 .713.288T13 2v2q0 .425-.288.713T12 5Zm0 18q-.425 0-.713-.288T11 22v-2q0-.425.288-.713T12 19q.425 0 .713.288T13 20v2q0 .425-.288.713T12 23ZM5.65 7.05L4.575 6q-.3-.275-.288-.7t.288-.725q.3-.3.725-.3t.7.3L7.05 5.65q.275.3.275.7t-.275.7q-.275.3-.687.288T5.65 7.05ZM18 19.425l-1.05-1.075q-.275-.3-.275-.713t.275-.687q.275-.3.688-.287t.712.287L19.425 18q.3.275.288.7t-.288.725q-.3.3-.725.3t-.7-.3ZM16.95 7.05q-.3-.275-.288-.687t.288-.713L18 4.575q.275-.3.7-.288t.725.288q.3.3.3.725t-.3.7L18.35 7.05q-.3.275-.7.275t-.7-.275ZM4.575 19.425q-.3-.3-.3-.725t.3-.7l1.075-1.05q.3-.275.712-.275t.688.275q.3.275.288.688t-.288.712L6 19.425q-.275.3-.7.288t-.725-.288Z"/>';
         const moonIcon = '<path d="M9 3q1.868 0 3.51.708q1.643.709 2.857 1.924q1.215 1.214 1.924 2.856Q18 10.13 18 11.997q0 1.866-.709 3.51t-1.923 2.859q-1.215 1.216-2.858 1.925Q10.867 21 9 21q-.789 0-1.54-.136q-.752-.135-1.46-.445q1.902-1.561 2.951-3.756Q10 14.47 10 12T8.951 7.337Q7.901 5.142 6 3.58q.708-.31 1.46-.445Q8.21 3 9 3Z"/>';
 
@@ -85,14 +104,13 @@
         let dateString = new Date().toLocaleDateString('cs-CZ', dateOptions);
         document.getElementById('currentDate').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
 
-        // --- PŘEPÍNÁNÍ TÉMATU ---
+        // --- THEME ---
         const htmlEl = document.documentElement;
         const toggleBtn = document.getElementById('themeToggle');
         const themeIconSvg = document.getElementById('themeIcon');
         const siteLogo = document.getElementById('siteLogo');
-
-        // Načíst uložené téma
         const currentTheme = localStorage.getItem('theme') || 'light';
+        
         htmlEl.setAttribute('data-theme', currentTheme);
         siteLogo.src = currentTheme === 'dark' ? logoDark : logoLight;
         themeIconSvg.innerHTML = currentTheme === 'dark' ? moonIcon : sunIcon;
@@ -100,60 +118,72 @@
         toggleBtn.addEventListener('click', () => {
             const current = htmlEl.getAttribute('data-theme');
             const next = current === 'dark' ? 'light' : 'dark';
-            
             htmlEl.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
-            
-            // Změna ikony a loga
             siteLogo.src = next === 'dark' ? logoDark : logoLight;
             themeIconSvg.innerHTML = next === 'dark' ? moonIcon : sunIcon;
         });
 
-        // --- DROPDOWN LOGIKA ---
-        const signinBtn = document.getElementById('signinBtn');
-        const signinDropdown = document.getElementById('signinDropdown');
-        
-        // Přepínače formulářů
+        // --- DROPDOWN LOGIKA (Obecná funkce pro otevření/zavření) ---
+        function setupDropdown(btnId, dropdownId) {
+            const btn = document.getElementById(btnId);
+            const dropdown = document.getElementById(dropdownId);
+            
+            if (btn && dropdown) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    // Zavřít ostatní dropdowny (pokud by jich bylo víc)
+                    document.querySelectorAll('.dropdown-content').forEach(d => {
+                        if (d !== dropdown) d.classList.remove('show');
+                    });
+                    dropdown.classList.toggle('show');
+                });
+            }
+        }
+
+        // Aktivace dropdownů
+        setupDropdown('signinBtn', 'signinDropdown');
+        setupDropdown('userBtn', 'userDropdown');
+
+        // Kliknutí vedle zavře vše
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.signin-wrap')) {
+                document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // Přepínače formulářů (Login/Register)
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         const showLoginBtn = document.getElementById('showLoginBtn');
         const loginWrapper = document.getElementById('loginFormWrapper');
         const registerWrapper = document.getElementById('registerFormWrapper');
 
-        if (signinBtn && signinDropdown) {
-            // Otevřít / Zavřít dropdown
-            signinBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                signinDropdown.classList.toggle('show');
+        if (showRegisterBtn) {
+            showRegisterBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                loginWrapper.style.display = 'none';
+                registerWrapper.style.display = 'block';
             });
-            
-            // Zavřít při kliknutí jinam
-            document.addEventListener('click', (e) => {
-                if (!signinDropdown.contains(e.target) && e.target !== signinBtn) {
-                    signinDropdown.classList.remove('show');
-                    // Reset na login při zavření (volitelné)
-                    setTimeout(() => {
-                        loginWrapper.style.display = 'block';
-                        registerWrapper.style.display = 'none';
-                    }, 200);
-                }
+        }
+        if (showLoginBtn) {
+            showLoginBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                registerWrapper.style.display = 'none';
+                loginWrapper.style.display = 'block';
             });
+        }
 
-            // Přepnutí na Registraci
-            if (showRegisterBtn) {
-                showRegisterBtn.addEventListener('click', (e) => {
-                    e.preventDefault(); // Aby to neuskočilo nahoru
-                    loginWrapper.style.display = 'none';
-                    registerWrapper.style.display = 'block';
-                });
-            }
-
-            // Přepnutí zpět na Login
-            if (showLoginBtn) {
-                showLoginBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    registerWrapper.style.display = 'none';
-                    loginWrapper.style.display = 'block';
-                });
+        // --- DETEKCE CHYBY PŘIHLÁŠENÍ ---
+        // Pokud URL obsahuje ?error=..., otevřeme dropdown a ukážeme chybu
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error')) {
+            const dropdown = document.getElementById('signinDropdown');
+            const errorMsg = document.getElementById('loginError');
+            if (dropdown && errorMsg) {
+                dropdown.classList.add('show');
+                errorMsg.style.display = 'block';
+                // Vyčistit URL (aby to tam nestrašilo po refresh)
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
     </script>

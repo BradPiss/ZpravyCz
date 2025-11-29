@@ -1,21 +1,17 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import home
+from app.api.routers import home, auth  # <--- DŮLEŽITÉ: Musí tu být 'auth'
 from app.core.database import engine, Base
-# Důležité: Tento import načte modely, aby o nich SQLAlchemy vědělo
 import app.models 
 
-# Vytvoření tabulek v databázi při startu
+# Vytvoření tabulek (pokud neexistují)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Zpravodajský portál")
 
-# Mount static files (CSS, obrázky)
+# Statické soubory (CSS, obrázky)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Include routers (zde budeme přidávat další)
+# Registrace routerů (cest)
 app.include_router(home.router)
-
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+app.include_router(auth.router) # <--- DŮLEŽITÉ: Tímto aktivujeme /login a /registrace
