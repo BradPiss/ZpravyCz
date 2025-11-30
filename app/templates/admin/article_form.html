@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width:800px;">
+    
+    <div style="margin-bottom:24px;">
+        <a href="/admin/clanky" style="color:var(--muted); text-decoration:none;">← Zpět na seznam</a>
+    </div>
+
+    <h1 style="font-size:28px; font-weight:800; margin-bottom:30px;">{{ title }}</h1>
+
+    <form method="post" style="display:flex; flex-direction:column; gap:20px;">
+        
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Nadpis článku</label>
+            <input type="text" name="title" value="{{ article.title if article else '' }}" required
+                   style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-size:16px;">
+        </div>
+
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">URL Obrázku</label>
+            <input type="url" name="image_url" value="{{ article.image_url if article and article.image_url else '' }}"
+                   placeholder="https://..."
+                   style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+            <div>
+                <label style="display:block; font-weight:700; margin-bottom:8px;">Kategorie</label>
+                <select name="category_id" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if article and article.category_id == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-weight:700; margin-bottom:8px;">Stav</label>
+                <select name="status" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+                    <option value="draft" {% if article and article.status.value == 'draft' %}selected{% endif %}>Koncept (neviditelný)</option>
+                    <option value="published" {% if article and article.status.value == 'published' %}selected{% endif %}>Vydáno (veřejné)</option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Perex (krátký úvod)</label>
+            <textarea name="perex" rows="3" required
+                      style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">{{ article.perex if article else '' }}</textarea>
+        </div>
+
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Obsah článku (HTML)</label>
+            <textarea name="content" rows="15" required
+                      style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); font-family:monospace;">{{ article.content if article else '' }}</textarea>
+            <p style="font-size:12px; color:var(--muted); margin-top:4px;">Zde můžeš psát HTML tagy (např. &lt;p&gt;, &lt;h2&gt;, &lt;b&gt;).</p>
+        </div>
+
+        <div style="margin-top:20px;">
+            <button type="submit" style="background:var(--blue); color:white; padding:14px 30px; border:0; border-radius:6px; font-weight:700; font-size:16px; cursor:pointer;">
+                {% if article %}Uložit změny{% else %}Publikovat článek{% endif %}
+            </button>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

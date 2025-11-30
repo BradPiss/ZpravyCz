@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import home, auth  # <--- DŮLEŽITÉ: Musí tu být 'auth'
+from app.api.routers import home, auth, admin
 from app.core.database import engine, Base
 import app.models 
 
@@ -14,4 +14,5 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Registrace routerů (cest)
 app.include_router(home.router)
-app.include_router(auth.router) # <--- DŮLEŽITÉ: Tímto aktivujeme /login a /registrace
+app.include_router(auth.router)
+app.include_router(admin.router)
