@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref # <--- PŘIDÁN IMPORT backref
 from datetime import datetime, timezone
 from app.core.database import Base
 
@@ -11,19 +11,22 @@ class Comment(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     is_visible = Column(Boolean, default=True)
     
-    # NOVÉ: Počítadla
+    # Počítadla
     likes = Column(Integer, default=0)
     dislikes = Column(Integer, default=0)
 
     author_id = Column(Integer, ForeignKey("users.id"))
     article_id = Column(Integer, ForeignKey("articles.id"))
     
-    # Odpovědi (hierarchie)
+    # Hierarchie (Odpověď na jiný komentář)
     parent_id = Column(Integer, ForeignKey("comments.id"), nullable=True)
 
     author = relationship("User", back_populates="comments")
     article = relationship("Article", back_populates="comments")
     
-    # Relace na sebe sama (pro stromovou strukturu)
-    # remote_side=[id] je nutné pro self-referential vazbu
-    replies = relationship("Comment", backref=relationship("Comment", remote_side=[id]), cascade="all, delete")
+    # OPRAVENÁ DEFINICE: Používáme backref() helper, ne relationship()
+    replies = relationship(
+        "Comment", 
+        backref=backref("parent", remote_side=[id]), 
+        cascade="all, delete"
+    )

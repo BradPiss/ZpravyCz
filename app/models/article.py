@@ -11,15 +11,24 @@ class Article(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    perex = Column(String)     # Krátký úvod
-    content = Column(Text)     # Hlavní obsah
+    perex = Column(String)
+    content = Column(Text)
     image_url = Column(String, nullable=True)
     
-    # OPRAVA: Použití timezone-aware času i pro update
+    # Časy
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
+    # Stav (Koncept / Vydáno)
     status = Column(SqEnum(ArticleStatus), default=ArticleStatus.DRAFT)
+    
+    # --- NOVÉ SLOUPCE PRO POZICE ---
+    # 0=Seznam, 1=Hlavní, 2=Vlevo, 3=Střed, 4=Vpravo
+    home_position = Column(Integer, default=0, index=True)
+    
+    # Kdy byl naposledy na pozici 1 (pro historii a automatické doplnění)
+    last_promoted_at = Column(DateTime, nullable=True)
+    # -------------------------------
 
     # Cizí klíče
     author_id = Column(Integer, ForeignKey("users.id"))
@@ -31,6 +40,4 @@ class Article(Base):
     tags = relationship("Tag", secondary=article_tags, back_populates="articles")
     comments = relationship("Comment", back_populates="article")
     versions = relationship("ArticleVersion", backref="article")
-    
-    # Relace pro uložené články (Saved by users)
     saved_by_users = relationship("User", secondary=saved_articles, back_populates="saved_articles_rel")
