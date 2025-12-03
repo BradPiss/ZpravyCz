@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Úprava uživatele{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width:600px;">
+    
+    <div style="margin-bottom:24px;">
+        <a href="/admin/uzivatele" style="color:var(--muted); text-decoration:none;">← Zpět na seznam</a>
+    </div>
+
+    <h1 style="font-size:28px; font-weight:800; margin-bottom:30px;">{{ title }}</h1>
+
+    <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:24px;">
+        
+        <p style="margin-bottom:20px;">
+            <strong>Email:</strong> {{ edit_user.email }}<br>
+            <strong>Jméno:</strong> {{ edit_user.name }}
+        </p>
+
+        <form method="post" style="display:flex; flex-direction:column; gap:20px;">
+            
+            <div>
+                <label style="display:block; font-weight:700; margin-bottom:8px;">Role</label>
+                <select name="role" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+                    <option value="reader" {% if edit_user.role.value == 'reader' %}selected{% endif %}>Čtenář (jen čte)</option>
+                    <option value="editor" {% if edit_user.role.value == 'editor' %}selected{% endif %}>Redaktor (píše články)</option>
+                    <option value="chief_editor" {% if edit_user.role.value == 'chief_editor' %}selected{% endif %}>Šéfredaktor (publikuje)</option>
+                    <option value="admin" {% if edit_user.role.value == 'admin' %}selected{% endif %}>Administrátor (vše)</option>
+                </select>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--border); border-radius:6px;">
+                <input type="checkbox" name="is_active" id="is_active" value="true" 
+                       {% if edit_user.is_active %}checked{% endif %} 
+                       style="width:20px; height:20px; cursor:pointer;">
+                <label for="is_active" style="font-weight:700; cursor:pointer; margin:0;">
+                    Uživatel je aktivní (může se přihlásit)
+                </label>
+            </div>
+
+            <button type="submit" style="background:var(--blue); color:white; padding:14px 30px; border:0; border-radius:6px; font-weight:700; font-size:16px; cursor:pointer; margin-top:10px;">
+                Uložit změny
+            </button>
+
+        </form>
+    </div>
+</div>
+{% endblock %}

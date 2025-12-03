@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Diskuse: {{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
+
+    <a href="{{ url_for('article_detail', article_id=article.id) }}" class="back-btn" style="display:inline-flex; align-items:center; gap:8px; color:var(--blue); font-weight:600; font-size:15px; text-decoration:none; margin-bottom:24px;">
+        ← Zpět na článek
+    </a>
+
+    <h1 style="font-size:28px; font-weight:800; margin-bottom:10px;">Diskuse</h1>
+    <p style="color:var(--muted); margin-bottom:30px; border-bottom:1px solid var(--border); padding-bottom:20px;">
+        K článku: <strong style="color:var(--text)">{{ article.title }}</strong>
+    </p>
+
+    {% if user %}
+        {% if user.is_active %}
+            <form action="/clanek/{{ article.id }}/komentar" method="post" style="margin-bottom:40px;">
+                <textarea name="content" rows="3" placeholder="Napište nový příspěvek..." required
+                          style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); resize:vertical;"></textarea>
+                <button type="submit" style="margin-top:10px; background:var(--blue); color:white; padding:10px 24px; border-radius:6px; font-weight:700; border:0; cursor:pointer;">
+                    Odeslat příspěvek
+                </button>
+            </form>
+        {% else %}
+            <div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:8px; margin-bottom:30px;">
+                <strong>Váš účet je zablokován.</strong> Nemůžete přidávat komentáře.
+            </div>
+        {% endif %}
+    {% else %}
+        <div style="background:var(--bg); border:1px solid var(--border); padding:20px; border-radius:8px; margin-bottom:30px; text-align:center;">
+            Pro zapojení do diskuse se musíte <button onclick="document.getElementById('signinBtn').click()" style="color:var(--blue); font-weight:700; background:none; border:0; cursor:pointer; text-decoration:underline;">přihlásit</button>.
+        </div>
+    {% endif %}
+
+    <div class="comments-list">
+        {% for comment in comments recursive %}
+        
+        <div class="comment-item" style="margin-bottom:24px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <div>
+                    <span style="font-weight:700; font-size:15px;">{{ comment.author.name }}</span>
+                    <span style="color:var(--muted); font-size:13px; margin-left:8px;">{{ comment.created_at.strftime('%d.%m. %H:%M') }}</span>
+                </div>
+            </div>
+            
+            <div style="font-size:15px; line-height:1.6; color:var(--text); margin-bottom:12px;">
+                {{ comment.content }}
+            </div>
+
+            <div style="display:flex; align-items:center; gap:16px; font-size:13px;">
+                
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <form action="/komentar/{{ comment.id }}/vote" method="post" style="display:inline;">
+                        <input type="hidden" name="vote_type" value="up">
+                        <button type="submit" style="background:none; border:0; cursor:pointer; color:green; display:flex; align-items:center; gap:4px; padding:0;">
+                            👍 {{ comment.likes }}
+                        </button>
+                    </form>
+                    <form action="/komentar/{{ comment.id }}/vote" method="post" style="display:inline;">
+                        <input type="hidden" name="vote_type" value="down">
+                        <button type="submit" style="background:none; border:0; cursor:pointer; color:#b91c1c; display:flex; align-items:center; gap:4px; padding:0;">
+                            👎 {{ comment.dislikes }}
+                        </button>
+                    </form>
+                </div>
+
+                {% if user and user.is_active %}
+                <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" style="background:none; border:0; color:var(--blue); font-weight:600; cursor:pointer; padding:0;">
+                    ↪ Odpovědět
+                </button>
+                {% endif %}
+
+                {% if user and (user.role.value == 'admin' or user.id == comment.author_id) %}
+                <form action="/komentar/{{ comment.id }}/smazat" method="post" onsubmit="return confirm('Smazat tento komentář?');" style="display:inline;">
+                    <button type="submit" style="background:none; border:0; color:#ef4444; font-weight:600; cursor:pointer; padding:0;">
+                        🗑️ Smazat
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            {% if user and user.is_active %}
+            <div id="reply-form-{{ comment.id }}" style="display:none; margin-top:12px; margin-left:20px; border-left:2px solid var(--border); padding-left:12px;">
+                <form action="/clanek/{{ article.id }}/komentar" method="post">
+                    <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                    <textarea name="content" rows="2" placeholder="Odpověď pro {{ comment.author.name }}..." required
+                              style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text);"></textarea>
+                    <div style="margin-top:8px;">
+                        <button type="submit" style="background:var(--blue); color:white; padding:6px 16px; border-radius:4px; font-weight:600; border:0; cursor:pointer; font-size:13px;">Odeslat</button>
+                        <button type="button" onclick="toggleReplyForm('reply-form-{{ comment.id }}')" style="background:none; border:0; color:var(--muted); cursor:pointer; margin-left:10px; font-size:13px;">Zrušit</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+
+            {% if comment.children %}
+            <div style="margin-left:30px; margin-top:16px; border-left: 2px solid var(--border); padding-left: 20px;">
+                {% for child in comment.children %}
+                    <div style="margin-bottom:16px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span style="font-weight:700; font-size:14px;">{{ child.author.name }}</span>
+                            <span style="color:var(--muted); font-size:12px;">{{ child.created_at.strftime('%d.%m. %H:%M') }}</span>
+                        </div>
+                        <div style="font-size:14px; color:var(--text);">{{ child.content }}</div>
+                        
+                        <div style="display:flex; gap:12px; font-size:12px; margin-top:4px; opacity:0.8;">
+                             <form action="/komentar/{{ child.id }}/vote" method="post" style="display:inline;">
+                                <input type="hidden" name="vote_type" value="up">
+                                <button>👍 {{ child.likes }}</button>
+                            </form>
+                            <form action="/komentar/{{ child.id }}/vote" method="post" style="display:inline;">
+                                <input type="hidden" name="vote_type" value="down">
+                                <button>👎 {{ child.dislikes }}</button>
+                            </form>
+                            {% if user and (user.role.value == 'admin' or user.id == child.author_id) %}
+                            <form action="/komentar/{{ child.id }}/smazat" method="post" onsubmit="return confirm('Smazat?');">
+                                <button style="color:red;">🗑️</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+        <div style="height:1px; background:var(--border); margin-bottom:24px;"></div>
+        {% endfor %}
+        
+        {% if not comments %}
+        <div style="text-align:center; padding:40px 0; color:var(--muted);">
+            Zatím zde nejsou žádné příspěvky. Buďte první!
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<script>
+    function toggleReplyForm(id) {
+        const form = document.getElementById(id);
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+        } else {
+            form.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

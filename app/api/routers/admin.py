@@ -139,3 +139,81 @@ async def delete_article(article_id: int, db: Session = Depends(get_db), user: U
         db.commit()
         
     return RedirectResponse("/admin/clanky", status_code=302)
+
+# --- SPRÁVA UŽIVATELŮ (Jen pro Adminy) ---
+
+@router.get("/uzivatele")
+async def admin_user_list(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    # OPRAVA: Nejdřív zjistíme, jestli je uživatel přihlášený (not user)
+    if not user or user.role != Role.ADMIN:
+        # Pokud není přihlášen nebo není admin -> přesměrovat na login nebo vyhodit chybu
+        return RedirectResponse("/?error=unauthorized", status_code=302)
+    
+    users = db.query(User).order_by(User.id.desc()).all()
+    
+    return templates.TemplateResponse("admin/user_list.html", {
+        "request": request,
+        "users": users,
+        "user": user,
+        "title": "Správa uživatelů"
+    })
+
+@router.get("/uzivatele/{user_id}/upravit")
+async def edit_user_form(user_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    # OPRAVA: Kontrola existence uživatele
+    if not user or user.role != Role.ADMIN:
+        return RedirectResponse("/?error=unauthorized", status_code=302)
+        
+    edit_user = db.query(User).filter(User.id == user_id).first()
+    if not edit_user:
+        raise HTTPException(status_code=404, detail="Uživatel nenalezen")
+        
+    return templates.TemplateResponse("admin/user_form.html", {
+        "request": request,
+        "edit_user": edit_user,
+        "user": user,
+        "title": f"Úprava uživatele: {edit_user.name}"
+    })
+
+@router.post("/uzivatele/{user_id}/upravit")
+async def edit_user_submit(
+    user_id: int,
+    role: str = Form(...),
+    is_active: bool = Form(False),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    # OPRAVA: Kontrola existence uživatele
+    if not user or user.role != Role.ADMIN:
+        return RedirectResponse("/?error=unauthorized", status_code=302)
+    
+    edit_user = db.query(User).filter(User.id == user_id).first()
+    if not edit_user:
+        raise HTTPException(status_code=404, detail="Uživatel nenalezen")
+    
+    # Ochrana: Nemůžu sebrat admin práva sám sobě ani se zablokovat
+    if edit_user.id == user.id:
+        # Pokud edituju sám sebe, vynutíme, že zůstanu Admin a Aktivní
+        edit_user.role = Role.ADMIN
+        edit_user.is_active = True
+    else:
+        edit_user.role = role
+        edit_user.is_active = is_active
+        
+    db.commit()
+    
+    return RedirectResponse("/admin/uzivatele", status_code=302)
+
+@router.post("/uzivatele/{user_id}/smazat")
+async def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    # OPRAVA: Kontrola existence uživatele
+    if not user or user.role != Role.ADMIN:
+        return RedirectResponse("/?error=unauthorized", status_code=302)
+        
+    del_user = db.query(User).filter(User.id == user_id).first()
+    
+    if del_user and del_user.id != user.id:
+        db.delete(del_user)
+        db.commit()
+        
+    return RedirectResponse("/admin/uzivatele", status_code=302)

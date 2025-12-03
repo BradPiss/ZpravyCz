@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Správa uživatelů{% endblock %}
+
+{% block content %}
+<div class="page-container" style="max-width: 1000px;">
+    
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+        <h1 style="font-size:28px; font-weight:800;">Správa uživatelů</h1>
+    </div>
+
+    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:8px;">
+        <table style="width:100%; border-collapse:collapse; text-align:left;">
+            <thead style="background:var(--bg); border-bottom:2px solid var(--border);">
+                <tr>
+                    <th style="padding:12px; font-weight:700;">ID</th>
+                    <th style="padding:12px; font-weight:700;">Jméno</th>
+                    <th style="padding:12px; font-weight:700;">Email</th>
+                    <th style="padding:12px; font-weight:700;">Role</th>
+                    <th style="padding:12px; font-weight:700;">Stav</th>
+                    <th style="padding:12px; font-weight:700; text-align:right;">Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr style="border-bottom:1px solid var(--border);">
+                    <td style="padding:12px; color:var(--muted); font-size:13px;">#{{ u.id }}</td>
+                    
+                    <td style="padding:12px; font-weight:600;">
+                        {{ u.name }}
+                        {% if u.id == user.id %} <span style="color:var(--muted); font-weight:400; font-size:12px;">(To jsi ty)</span>{% endif %}
+                    </td>
+                    
+                    <td style="padding:12px;">{{ u.email }}</td>
+                    
+                    <td style="padding:12px;">
+                        {% if u.role.value == 'admin' %}
+                            <span style="background:#dbeafe; color:#1e40af; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">ADMIN</span>
+                        {% elif u.role.value == 'chief_editor' %}
+                            <span style="background:#fef3c7; color:#92400e; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">ŠÉFREDAKTOR</span>
+                        {% elif u.role.value == 'editor' %}
+                            <span style="background:#e0e7ff; color:#3730a3; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">REDAKTOR</span>
+                        {% else %}
+                            <span style="background:#f3f4f6; color:#374151; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">ČTENÁŘ</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td style="padding:12px;">
+                        {% if u.is_active %}
+                            <span style="color:green; font-weight:bold;">● Aktivní</span>
+                        {% else %}
+                            <span style="color:red; font-weight:bold;">✖ Blokován</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td style="padding:12px; text-align:right;">
+                        <div style="display:flex; gap:8px; justify-content:flex-end;">
+                            <a href="/admin/uzivatele/{{ u.id }}/upravit" style="background:var(--blue); color:white; padding:6px 12px; border-radius:4px; text-decoration:none; font-size:13px; font-weight:600;">
+                                Upravit
+                            </a>
+                            {% if u.id != user.id %}
+                            <form action="/admin/uzivatele/{{ u.id }}/smazat" method="post" onsubmit="return confirm('Opravdu smazat uživatele {{ u.name }}?');">
+                                <button type="submit" style="background:#ef4444; color:white; padding:6px 12px; border:0; border-radius:4px; cursor:pointer; font-size:13px; font-weight:600;">
+                                    Smazat
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

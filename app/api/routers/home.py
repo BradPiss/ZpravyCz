@@ -87,3 +87,42 @@ async def category_detail(
             "user": user
         }
     )
+
+# ... (importy Comment) ...
+
+@router.get("/clanek/{article_id}", name="article_detail")
+async def article_detail(
+    request: Request, 
+    article_id: int, 
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    article = db.query(Article).filter(Article.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=404, detail="Článek nenalezen")
+    
+    # ZMĚNA: Načteme jen POČET komentářů (count), ne seznam
+    comments_count = db.query(Comment)\
+        .filter(Comment.article_id == article_id, Comment.is_visible == True)\
+        .count()
+
+    related_query = db.query(Article).filter(
+        Article.status == ArticleStatus.PUBLISHED, 
+        Article.id != article_id
+    )
+    if article.category_id:
+        related_query = related_query.filter(Article.category_id == article.category_id)
+    
+    related_articles = related_query.limit(4).all()
+    
+    return templates.TemplateResponse(
+        "article_detail.html", 
+        {
+            "request": request, 
+            "title": article.title, 
+            "article": article,
+            "comments_count": comments_count, # Posíláme jen číslo
+            "related_articles": related_articles,
+            "user": user
+        }
+    )

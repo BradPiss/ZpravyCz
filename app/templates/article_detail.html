@@ -61,6 +61,20 @@
         {% endfor %}
     </div>
 
+    <div style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:20px;">
+            <div>
+                <h3 style="font-size:20px; font-weight:800; margin:0 0 4px 0;">Diskuse</h3>
+                <p style="color:var(--muted); margin:0; font-size:14px;">Zapojte se do debaty k článku.</p>
+            </div>
+            
+            <a href="/clanek/{{ article.id }}/diskuse" style="background:var(--bg); border:2px solid var(--border); color:var(--text); padding:10px 20px; border-radius:6px; font-weight:700; text-decoration:none; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:8px;">
+                <span>Vstoupit do diskuse</span>
+                <span style="background:var(--blue); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">{{ comments_count }}</span>
+            </a>
+        </div>
+    </div>
+
     {% if related_articles %}
     <div class="related-articles" style="margin-top:60px; padding-top:40px; border-top:2px solid var(--border);">
         <h2 class="related-title" style="font-size:24px; font-weight:800; color:var(--text); margin-bottom:28px;">
