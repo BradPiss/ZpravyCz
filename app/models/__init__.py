@@ -6,3 +6,4 @@ from app.models.article import Article
 from app.models.comment import Comment
 from app.models.article_version import ArticleVersion
 from app.core.database import Base
+from app.models.vote import Vote

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from app.api.routers import home, auth, admin, comments
+from app.api.routers import home, auth, admin, comments, favorites
 from app.core.database import engine, Base
 import app.models 
 
@@ -17,3 +17,4 @@ app.include_router(home.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
 app.include_router(comments.router)
+app.include_router(favorites.router)

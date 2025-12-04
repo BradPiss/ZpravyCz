@@ -6,7 +6,8 @@
 <div class="page-container" style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
 
     <a href="{{ url_for('article_detail', article_id=article.id) }}" class="back-btn" style="display:inline-flex; align-items:center; gap:8px; color:var(--blue); font-weight:600; font-size:15px; text-decoration:none; margin-bottom:24px;">
-        ← Zpět na článek
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg>
+        <span>Zpět na článek</span>
     </a>
 
     <h1 style="font-size:28px; font-weight:800; margin-bottom:10px;">Diskuse</h1>
@@ -17,27 +18,22 @@
     {% if user %}
         {% if user.is_active %}
             <form action="/clanek/{{ article.id }}/komentar" method="post" style="margin-bottom:40px;">
-                <textarea name="content" rows="3" placeholder="Napište nový příspěvek..." required
-                          style="width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); resize:vertical;"></textarea>
-                <button type="submit" style="margin-top:10px; background:var(--blue); color:white; padding:10px 24px; border-radius:6px; font-weight:700; border:0; cursor:pointer;">
-                    Odeslat příspěvek
-                </button>
+                <textarea name="content" rows="3" placeholder="Zapojte se do diskuse..." required class="comment-input"></textarea>
+                <button type="submit" class="submit-btn">Odeslat příspěvek</button>
             </form>
         {% else %}
-            <div style="background:#fee2e2; color:#b91c1c; padding:15px; border-radius:8px; margin-bottom:30px;">
-                <strong>Váš účet je zablokován.</strong> Nemůžete přidávat komentáře.
-            </div>
+            <div class="blocked-msg">Váš účet je zablokován. Nemůžete přispívat.</div>
         {% endif %}
     {% else %}
-        <div style="background:var(--bg); border:1px solid var(--border); padding:20px; border-radius:8px; margin-bottom:30px; text-align:center;">
-            Pro zapojení do diskuse se musíte <button onclick="document.getElementById('signinBtn').click()" style="color:var(--blue); font-weight:700; background:none; border:0; cursor:pointer; text-decoration:underline;">přihlásit</button>.
+        <div class="login-msg">
+            Pro diskusi se musíte <button onclick="document.getElementById('signinBtn').click()">přihlásit</button>.
         </div>
     {% endif %}
 
     <div class="comments-list">
         {% for comment in comments recursive %}
         
-        <div class="comment-item" style="margin-bottom:24px;">
+        <div class="comment-row" id="comment-{{ comment.id }}" style="margin-bottom: 24px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
                 <div>
                     <span style="font-weight:700; font-size:15px;">{{ comment.author.name }}</span>
@@ -49,84 +45,69 @@
                 {{ comment.content }}
             </div>
 
-            <div style="display:flex; align-items:center; gap:16px; font-size:13px;">
+            <div class="comment-actions">
                 
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <form action="/komentar/{{ comment.id }}/vote" method="post" style="display:inline;">
-                        <input type="hidden" name="vote_type" value="up">
-                        <button type="submit" style="background:none; border:0; cursor:pointer; color:green; display:flex; align-items:center; gap:4px; padding:0;">
-                            👍 {{ comment.likes }}
-                        </button>
-                    </form>
-                    <form action="/komentar/{{ comment.id }}/vote" method="post" style="display:inline;">
-                        <input type="hidden" name="vote_type" value="down">
-                        <button type="submit" style="background:none; border:0; cursor:pointer; color:#b91c1c; display:flex; align-items:center; gap:4px; padding:0;">
-                            👎 {{ comment.dislikes }}
-                        </button>
-                    </form>
-                </div>
+                <button onclick="vote('{{ comment.id }}', 'up')" 
+                        id="btn-up-{{ comment.id }}"
+                        class="icon-btn {% if comment.user_vote == 'up' %}active-up{% endif %}"
+                        title="To se mi líbí">
+                    <span id="icon-up-{{ comment.id }}" style="display:flex;">
+                        {% if comment.user_vote == 'up' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/></svg>
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                        {% endif %}
+                    </span>
+                    <span id="count-up-{{ comment.id }}">{{ comment.likes }}</span>
+                </button>
+
+                <button onclick="vote('{{ comment.id }}', 'down')" 
+                        id="btn-down-{{ comment.id }}"
+                        class="icon-btn {% if comment.user_vote == 'down' %}active-down{% endif %}"
+                        title="Nelíbí se mi">
+                    <span id="icon-down-{{ comment.id }}" style="display:flex;">
+                        {% if comment.user_vote == 'down' %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>
+                        {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+                        {% endif %}
+                    </span>
+                    <span id="count-down-{{ comment.id }}">{{ comment.dislikes }}</span>
+                </button>
 
                 {% if user and user.is_active %}
-                <button onclick="toggleReplyForm('reply-form-{{ comment.id }}')" style="background:none; border:0; color:var(--blue); font-weight:600; cursor:pointer; padding:0;">
-                    ↪ Odpovědět
+                <button onclick="toggleReply('reply-{{ comment.id }}')" class="icon-btn text-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+                    Odpovědět
                 </button>
                 {% endif %}
 
                 {% if user and (user.role.value == 'admin' or user.id == comment.author_id) %}
-                <form action="/komentar/{{ comment.id }}/smazat" method="post" onsubmit="return confirm('Smazat tento komentář?');" style="display:inline;">
-                    <button type="submit" style="background:none; border:0; color:#ef4444; font-weight:600; cursor:pointer; padding:0;">
-                        🗑️ Smazat
-                    </button>
-                </form>
+                <button onclick="openDeleteModal('/komentar/{{ comment.id }}/smazat')" class="icon-btn delete-btn" title="Smazat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
                 {% endif %}
             </div>
 
             {% if user and user.is_active %}
-            <div id="reply-form-{{ comment.id }}" style="display:none; margin-top:12px; margin-left:20px; border-left:2px solid var(--border); padding-left:12px;">
+            <div id="reply-{{ comment.id }}" class="reply-box" style="display:none;">
                 <form action="/clanek/{{ article.id }}/komentar" method="post">
                     <input type="hidden" name="parent_id" value="{{ comment.id }}">
-                    <textarea name="content" rows="2" placeholder="Odpověď pro {{ comment.author.name }}..." required
-                              style="width:100%; padding:8px; border:1px solid var(--border); border-radius:6px; font-size:14px; background:var(--bg); color:var(--text);"></textarea>
+                    <textarea name="content" rows="2" placeholder="Odpověď pro {{ comment.author.name }}..." required class="comment-input"></textarea>
                     <div style="margin-top:8px;">
-                        <button type="submit" style="background:var(--blue); color:white; padding:6px 16px; border-radius:4px; font-weight:600; border:0; cursor:pointer; font-size:13px;">Odeslat</button>
-                        <button type="button" onclick="toggleReplyForm('reply-form-{{ comment.id }}')" style="background:none; border:0; color:var(--muted); cursor:pointer; margin-left:10px; font-size:13px;">Zrušit</button>
+                        <button type="submit" class="submit-btn small">Odeslat</button>
                     </div>
                 </form>
             </div>
             {% endif %}
 
             {% if comment.children %}
-            <div style="margin-left:30px; margin-top:16px; border-left: 2px solid var(--border); padding-left: 20px;">
-                {% for child in comment.children %}
-                    <div style="margin-bottom:16px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span style="font-weight:700; font-size:14px;">{{ child.author.name }}</span>
-                            <span style="color:var(--muted); font-size:12px;">{{ child.created_at.strftime('%d.%m. %H:%M') }}</span>
-                        </div>
-                        <div style="font-size:14px; color:var(--text);">{{ child.content }}</div>
-                        
-                        <div style="display:flex; gap:12px; font-size:12px; margin-top:4px; opacity:0.8;">
-                             <form action="/komentar/{{ child.id }}/vote" method="post" style="display:inline;">
-                                <input type="hidden" name="vote_type" value="up">
-                                <button>👍 {{ child.likes }}</button>
-                            </form>
-                            <form action="/komentar/{{ child.id }}/vote" method="post" style="display:inline;">
-                                <input type="hidden" name="vote_type" value="down">
-                                <button>👎 {{ child.dislikes }}</button>
-                            </form>
-                            {% if user and (user.role.value == 'admin' or user.id == child.author_id) %}
-                            <form action="/komentar/{{ child.id }}/smazat" method="post" onsubmit="return confirm('Smazat?');">
-                                <button style="color:red;">🗑️</button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
+            <div class="nested-comments">
+                {{ loop(comment.children) }}
             </div>
             {% endif %}
 
         </div>
-        <div style="height:1px; background:var(--border); margin-bottom:24px;"></div>
         {% endfor %}
         
         {% if not comments %}
@@ -135,17 +116,132 @@
         </div>
         {% endif %}
     </div>
-
 </div>
 
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Smazat komentář?</h3>
+        <p>Tato akce je nevratná.</p>
+        <div class="modal-actions">
+            <button onclick="closeDeleteModal()" class="btn-cancel">Zrušit</button>
+            <form id="deleteForm" method="post" style="margin:0;">
+                <button type="submit" class="btn-confirm">Smazat</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .comment-input { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--text); font-family:inherit; }
+    .submit-btn { background:var(--blue); color:white; padding:10px 20px; border-radius:6px; font-weight:700; border:0; cursor:pointer; }
+    .submit-btn.small { padding:6px 16px; font-size:13px; }
+    .blocked-msg { background:#fee2e2; color:#b91c1c; padding:15px; border-radius:8px; margin-bottom:30px; }
+    .login-msg { background:var(--bg); border:1px solid var(--border); padding:20px; border-radius:8px; text-align:center; margin-bottom:30px; }
+    .login-msg button { color:var(--blue); font-weight:700; background:none; border:0; cursor:pointer; text-decoration:underline; }
+    
+    .comment-actions { display:flex; align-items:center; gap:16px; margin-top:8px; }
+    .icon-btn { background:none; border:0; cursor:pointer; display:flex; align-items:center; gap:6px; color:var(--muted); padding:4px; border-radius:4px; transition:all 0.2s; }
+    .icon-btn:hover { background:rgba(0,0,0,0.05); }
+    .active-up { color: green; font-weight:bold; }
+    .active-down { color: #b91c1c; font-weight:bold; }
+    .delete-btn { color: #ef4444; }
+    .delete-btn:hover { background:#fee2e2; }
+    .text-btn { font-weight:600; font-size:13px; color:var(--blue); }
+
+    .nested-comments { margin-left:36px; margin-top:16px; border-left:2px solid var(--border); padding-left:20px; }
+    .reply-box { margin-top:12px; margin-left:20px; }
+
+    .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center; }
+    .modal-content { background:var(--bg); padding:24px; border-radius:12px; width:300px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+    .modal-actions { display:flex; gap:10px; justify-content:center; margin-top:20px; }
+    .btn-cancel { background:none; border:1px solid var(--border); padding:8px 16px; border-radius:6px; cursor:pointer; color:var(--text); }
+    .btn-confirm { background:#ef4444; border:0; padding:8px 16px; border-radius:6px; cursor:pointer; color:white; font-weight:700; }
+</style>
+
 <script>
-    function toggleReplyForm(id) {
-        const form = document.getElementById(id);
-        if (form.style.display === 'none') {
-            form.style.display = 'block';
-        } else {
-            form.style.display = 'none';
+    // SVG Ikony (řetězce)
+    const svgs = {
+        up_filled: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-1.91l-.01-.01L23 10z"/></svg>',
+        up_outline: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>',
+        down_filled: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v1.91l.01.01L1 14c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>',
+        down_outline: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>'
+    };
+
+    async function vote(commentId, type) {
+        // Příprava dat
+        const formData = new FormData();
+        formData.append('vote_type', type);
+
+        try {
+            // ZMĚNA: Použita klasická konkatenace stringů (aby to neblblo v šabloně)
+            const response = await fetch('/komentar/' + commentId + '/vote', {
+                method: 'POST',
+                body: formData
+            });
+
+            // Pokud není přihlášen (401)
+            if (response.status === 401) {
+                const btn = document.getElementById('signinBtn');
+                if(btn) btn.click();
+                return;
+            }
+
+            const data = await response.json();
+
+            // Pokud OK, aktualizujeme DOM
+            if (data) {
+                // 1. Čísla
+                document.getElementById('count-up-' + commentId).textContent = data.likes;
+                document.getElementById('count-down-' + commentId).textContent = data.dislikes;
+
+                // 2. Elementy
+                const btnUp = document.getElementById('btn-up-' + commentId);
+                const btnDown = document.getElementById('btn-down-' + commentId);
+                const iconUp = document.getElementById('icon-up-' + commentId);
+                const iconDown = document.getElementById('icon-down-' + commentId);
+
+                // 3. Reset
+                btnUp.classList.remove('active-up');
+                btnDown.classList.remove('active-down');
+                iconUp.innerHTML = svgs.up_outline;
+                iconDown.innerHTML = svgs.down_outline;
+
+                // 4. Aktivní stav
+                if (data.user_vote === 'up') {
+                    btnUp.classList.add('active-up');
+                    iconUp.innerHTML = svgs.up_filled;
+                } else if (data.user_vote === 'down') {
+                    btnDown.classList.add('active-down');
+                    iconDown.innerHTML = svgs.down_filled;
+                }
+            }
+
+        } catch (error) {
+            console.error('Chyba:', error);
         }
     }
+
+    // Toggle odpovědi
+    function toggleReply(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+    }
+
+    // Modal
+    const modal = document.getElementById('deleteModal');
+    const deleteForm = document.getElementById('deleteForm');
+
+    function openDeleteModal(actionUrl) {
+        deleteForm.action = actionUrl;
+        modal.style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        modal.style.display = 'none';
+    }
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeDeleteModal();
+    });
 </script>
 {% endblock %}

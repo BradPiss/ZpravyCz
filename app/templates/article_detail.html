@@ -12,13 +12,13 @@
         <span>Zpět na hlavní stránku</span>
     </a>
 
-    <div class="article-meta" style="display:flex; align-items:center; gap:16px; margin-bottom:6px; flex-wrap:wrap; height: 30px;">
+    <div class="article-meta" style="display:flex; align-items:center; gap:12px; margin-bottom:8px; flex-wrap:wrap; min-height: 30px;">
         
-        <span class="news-time" style="display:inline-flex; align-items:center; height: 24px; margin-bottom:0;">
+        <span class="news-time" style="display:flex; align-items:center; justify-content:center; padding: 4px 8px; margin:0; font-size:12px; border-radius:4px; line-height: 1.2;">
             Dnes {{ article.created_at.strftime('%H:%M') }}
         </span>
         
-        <span class="article-category" style="display:inline-flex; align-items:center; height: 24px; color:var(--blue); font-weight:700; font-size:13px; text-transform:uppercase;">
+        <span class="article-category" style="display:flex; align-items:center; font-size:13px; font-weight:700; text-transform:uppercase; color:var(--blue); margin:0; line-height: 1.2;">
             {% if article.category %}
             <a href="{{ url_for('category_detail', category_id=article.category.id) }}" style="text-decoration:none; color:inherit;">
                 {{ article.category.name }}
@@ -28,9 +28,22 @@
             {% endif %}
         </span>
         
-        <span class="article-author" style="display:inline-flex; align-items:center; height: 24px; color:var(--muted); font-size:14px;">
+        <span class="article-author" style="display:flex; align-items:center; font-size:14px; color:var(--muted); margin:0; line-height: 1.2;">
             {{ article.author.name }}
         </span>
+
+        <button class="fav-btn" data-article-id="{{ article.id }}"
+                style="margin-left:4px; margin-bottom:2px; background:none; border:0; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; color:var(--blue);"
+                title="Přidat do oblíbených">
+            
+            <span id="fav-icon" style="display:flex; align-items:center;">
+                {% if user and article in user.saved_articles_rel %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                {% endif %}
+            </span>
+        </button>
     </div>
 
     <h1 class="article-title" style="font-size:38px; font-weight:800; line-height:1.15; color:var(--text); margin:0 0 24px 0;">
@@ -98,4 +111,45 @@
     </div>
     {% endif %}
 </article>
+
+<script>
+    const heartIcons = {
+        filled: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+        outline: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
+    };
+
+    // Najdeme tlačítko a přidáme event listener
+    const favBtn = document.querySelector('.fav-btn');
+    if (favBtn) {
+        favBtn.addEventListener('click', async function() {
+            const articleId = this.getAttribute('data-article-id');
+            
+            try {
+                // Odeslání požadavku
+                const response = await fetch('/clanek/' + articleId + '/oblibit', { 
+                    method: 'POST' 
+                });
+                
+                // Pokud není přihlášen -> otevřít login
+                if (response.status === 401) {
+                    const signinBtn = document.getElementById('signinBtn');
+                    if (signinBtn) signinBtn.click();
+                    return;
+                }
+
+                // Zpracování odpovědi
+                const data = await response.json();
+                const iconContainer = document.getElementById('fav-icon');
+                
+                if (data.action === 'added') {
+                    iconContainer.innerHTML = heartIcons.filled;
+                } else {
+                    iconContainer.innerHTML = heartIcons.outline;
+                }
+            } catch (error) {
+                console.error('Chyba:', error);
+            }
+        });
+    }
+</script>
 {% endblock %}

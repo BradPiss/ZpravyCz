@@ -8,6 +8,8 @@ from typing import Optional
 from app.core.database import get_db
 from app.models.article import Article
 from app.models.category import Category
+from app.models.comment import Comment
+from app.models.vote import Vote
 from app.models.user import User
 from app.models.enums import ArticleStatus, Role
 from app.api.dependencies import get_current_user
@@ -205,14 +207,50 @@ async def edit_user_submit(
     return RedirectResponse("/admin/uzivatele", status_code=302)
 
 @router.post("/uzivatele/{user_id}/smazat")
-async def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    # OPRAVA: Kontrola existence uživatele
+async def delete_user(
+    user_id: int, 
+    db: Session = Depends(get_db), 
+    user: User = Depends(get_current_user)
+):
+    # 1. Kontrola práv
     if not user or user.role != Role.ADMIN:
         return RedirectResponse("/?error=unauthorized", status_code=302)
         
     del_user = db.query(User).filter(User.id == user_id).first()
     
+    # 2. Ochrana: Nemůžu smazat sám sebe
     if del_user and del_user.id != user.id:
+        
+        # A) Články: Převedeme na Admina (zachráníme obsah)
+        user_articles = db.query(Article).filter(Article.author_id == del_user.id).all()
+        for article in user_articles:
+            article.author_id = user.id
+            
+        # B) Komentáře: SMAŽEME JE (Změna oproti minule)
+        # Díky kaskádě v modelu se smažou i lajky u těchto komentářů a odpovědi na ně
+        user_comments = db.query(Comment).filter(Comment.author_id == del_user.id).all()
+        for comment in user_comments:
+            db.delete(comment)
+            
+        # --- C) HLASY (TADY JE OPRAVA) ---
+        # 1. Zjistíme, u kterých komentářů uživatel hlasoval
+        votes_to_delete = db.query(Vote).filter(Vote.user_id == del_user.id).all()
+        affected_comment_ids = {v.comment_id for v in votes_to_delete} # Množina unikátních ID
+        
+        # 2. Smažeme hlasy
+        for v in votes_to_delete:
+            db.delete(v)
+        
+        db.commit() # Uložíme smazání, aby .count() níže viděl nový stav
+        
+        # 3. Přepočítáme čísla u dotčených komentářů (Refresh Counters)
+        for cid in affected_comment_ids:
+            comment = db.query(Comment).filter(Comment.id == cid).first()
+            if comment:
+                comment.likes = db.query(Vote).filter(Vote.comment_id == cid, Vote.vote_type == "up").count()
+                comment.dislikes = db.query(Vote).filter(Vote.comment_id == cid, Vote.vote_type == "down").count()
+        
+        # 3. Smazání uživatele
         db.delete(del_user)
         db.commit()
         
