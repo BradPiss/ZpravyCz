@@ -26,24 +26,61 @@
                    style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
         </div>
 
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-            <div>
-                <label style="display:block; font-weight:700; margin-bottom:8px;">Kategorie</label>
-                <select name="category_id" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if article and article.category_id == cat.id %}selected{% endif %}>
-                            {{ cat.name }}
-                        </option>
-                    {% endfor %}
-                </select>
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Popisek obrázku (nepovinné)</label>
+            <input type="text" name="image_caption" value="{{ article.image_caption if article and article.image_caption else '' }}"
+                   placeholder="Např. Pohled na novou stanici metra"
+                   style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+            <p style="font-size:12px; color:var(--muted); margin-top:4px;">Pokud nevyplníte, zobrazí se "Ilustrační snímek"</p>
+        </div>
+
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Kategorie</label>
+            <select name="category_id" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if article and article.category_id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:20px;">
+            
+            <label style="display:block; font-weight:700; margin-bottom:12px;">Stav publikace</label>
+            
+            <select name="status" id="statusSelect" onchange="togglePositionSelector()" 
+                    style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text); margin-bottom:20px;">
+                
+                <option value="draft" {% if article and article.status.value == 'draft' %}selected{% endif %}>
+                    Koncept (neveřejný)
+                </option>
+
+                {% if user.role.value in ['admin', 'chief_editor'] or (article and article.status.value == 'published') %}
+                    <option value="published" {% if article and article.status.value == 'published' %}selected{% endif %} 
+                            style="font-weight:bold; color:var(--blue);">
+                         Vydáno (veřejné)
+                    </option>
+                {% endif %}
+            </select>
+
+            {% if user.role.value in ['admin', 'chief_editor'] %}
+            <div id="positionSelectorWrapper" style="display:none;">
+                <label style="display:block; font-weight:700; margin-bottom:12px;">Pozice na hlavní stránce</label>
+                <input type="hidden" name="home_position" id="home_position" value="{{ article.home_position if article else 0 }}">
+
+                <div class="layout-grid">
+                    <div class="layout-item pos-main" onclick="selectPosition(1, this)" id="btn-pos-1">1. HLAVNÍ ZPRÁVA</div>
+                    <div class="layout-row">
+                        <div class="layout-item pos-sec" onclick="selectPosition(2, this)" id="btn-pos-2">2. Vlevo</div>
+                        <div class="layout-item pos-sec" onclick="selectPosition(3, this)" id="btn-pos-3">3. Střed</div>
+                        <div class="layout-item pos-sec" onclick="selectPosition(4, this)" id="btn-pos-4">4. Vpravo</div>
+                    </div>
+                    <div class="layout-item pos-list" onclick="selectPosition(0, this)" id="btn-pos-0">Běžný seznam (automaticky)</div>
+                </div>
+                <p style="font-size:12px; color:var(--muted); margin-top:8px;">Pokud vyberete obsazenou pozici, původní článek spadne do seznamu.</p>
             </div>
-            <div>
-                <label style="display:block; font-weight:700; margin-bottom:8px;">Stav</label>
-                <select name="status" style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
-                    <option value="draft" {% if article and article.status.value == 'draft' %}selected{% endif %}>Koncept (neviditelný)</option>
-                    <option value="published" {% if article and article.status.value == 'published' %}selected{% endif %}>Vydáno (veřejné)</option>
-                </select>
-            </div>
+            {% endif %}
         </div>
 
         <div>
@@ -61,10 +98,53 @@
 
         <div style="margin-top:20px;">
             <button type="submit" style="background:var(--blue); color:white; padding:14px 30px; border:0; border-radius:6px; font-weight:700; font-size:16px; cursor:pointer;">
-                {% if article %}Uložit změny{% else %}Publikovat článek{% endif %}
+                {% if article %}Uložit změny{% else %}Uložit článek{% endif %}
             </button>
         </div>
 
     </form>
 </div>
+
+<style>
+    .layout-grid { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
+    .layout-row { display: flex; gap: 10px; }
+    .layout-item {
+        border: 2px dashed #ccc; border-radius: 4px; 
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 600; color: #666;
+        cursor: pointer; transition: all 0.2s;
+        background: #f9f9f9;
+    }
+    .layout-item:hover { border-color: var(--blue); color: var(--blue); }
+    .layout-item.active { background: var(--blue); color: white; border-style: solid; border-color: var(--blue); }
+    .pos-main { height: 80px; width: 100%; font-size: 16px; }
+    .pos-sec { height: 60px; flex: 1; text-align: center; }
+    .pos-list { height: 40px; width: 100%; border-style: solid; border-color: #eee; }
+</style>
+
+<script>
+    function togglePositionSelector() {
+        const status = document.getElementById('statusSelect').value;
+        const wrapper = document.getElementById('positionSelectorWrapper');
+        if (wrapper) {
+            wrapper.style.display = (status === 'published') ? 'block' : 'none';
+        }
+    }
+
+    function selectPosition(posId, element) {
+        document.querySelectorAll('.layout-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('home_position').value = posId;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        togglePositionSelector();
+        const posInput = document.getElementById('home_position');
+        if (posInput) {
+            const currentPos = parseInt(posInput.value);
+            const btn = document.getElementById('btn-pos-' + currentPos);
+            if (btn) btn.classList.add('active');
+        }
+    });
+</script>
 {% endblock %}

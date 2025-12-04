@@ -35,7 +35,7 @@
 {% endif %}
 
 {% if secondary_articles %}
-<section class="secondary-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));gap:28px;margin-bottom:50px">
+<section class="secondary-grid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:28px;margin-bottom:50px">
   {% for article in secondary_articles %}
   <article>
     <div class="clickable-area">
@@ -61,12 +61,10 @@
 {% endif %}
 
 <section style="margin-top:60px">
-  <div class="news-support-container" style="display:flex; gap:28px; align-items:start;">
+  <div class="news-support-container">
     
-    <div class="news-list-wrapper" style="flex:1;">
-      <h2 class="section-title" style="font-size:28px;font-weight:800;border-bottom:3px solid var(--blue);padding-bottom:16px;margin-bottom:24px;">
-          Další zprávy
-      </h2>
+    <div class="news-list-wrapper">
+      <h2 class="section-title">Další zprávy</h2>
       
       <div id="newsList">
         {% for article in list_articles %}
@@ -110,21 +108,10 @@
 
       <script>
         document.getElementById('hpLoadMoreBtn').addEventListener('click', function() {
-            // 1. Najdeme VŠECHNY články, které jsou momentálně skryté
-            const hiddenArticles = document.querySelectorAll('#newsList .hidden-article');
-            
-            // 2. Vezmeme z nich PRVNÍCH 6 (další várka)
-            const nextBatch = Array.from(hiddenArticles).slice(0, 6);
-            
-            // 3. Odkryjeme tuto várku
-            nextBatch.forEach(article => {
-                article.classList.remove('hidden-article');
-            });
-            
-            // 4. Zkontrolujeme, jestli ještě něco zbylo skryté
-            // Pokud počet skrytých je 0, schováme tlačítko
-            const remainingHidden = document.querySelectorAll('#newsList .hidden-article');
-            if (remainingHidden.length === 0) {
+            const hidden = document.querySelectorAll('#newsList .hidden-article');
+            const toShow = Array.from(hidden).slice(0, 6);
+            toShow.forEach(el => el.classList.remove('hidden-article'));
+            if (document.querySelectorAll('#newsList .hidden-article').length === 0) {
                 document.getElementById('hpLoadMoreContainer').style.display = 'none';
             }
         });
@@ -137,29 +124,57 @@
 
     </div>
 
-    <aside class="support-box" style="width:300px; flex-shrink:0;">
+    <aside class="support-box">
       <h3 class="support-title">Podpořte nás ❤️</h3>
       <p class="support-description">
-        Díky vaší podpoře můžeme poskytovat kvalitní nezávislé zpravodajství bez reklam.
+        Kvalitní obsah vzniká jen díky podpoře čtenářů, jako jste vy. Fungujeme bez reklam a silných investorů za zády. Váš příspěvek nám dává svobodu tvořit poctivě a udržet zprávy odemčené pro všechny.
       </p>
       
-      <div class="amount-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <button class="amount-btn" style="padding:10px;border:2px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;">50 Kč</button>
-        <button class="amount-btn" style="padding:10px;border:2px solid var(--border);background:var(--bg);border-radius:8px;cursor:pointer;">100 Kč</button>
+      <div class="payment-toggle">
+        <button type="button" id="btn-one-time" class="active">Jednorázově</button>
+        <button type="button" id="btn-monthly">Měsíčně</button>
       </div>
       
-      <button class="support-submit" style="width:100%;padding:14px;background:var(--blue);color:#fff;border:0;border-radius:8px;font-weight:700;cursor:pointer;">
-          Podpořit
-      </button>
+      <div class="amount-grid">
+        <button type="button" class="amount-btn" onclick="setAmount(50)">50 Kč</button>
+        <button type="button" class="amount-btn" onclick="setAmount(100)">100 Kč</button>
+        <button type="button" class="amount-btn" onclick="setAmount(500)">500 Kč</button>
+        <button type="button" class="amount-btn" onclick="setAmount(1000)">1000 Kč</button>
+      </div>
+      
+      <input type="number" id="custom-amount-input" class="custom-amount" placeholder="Vlastní částka (Kč)" min="1">
+      
+      <button class="support-submit">Podpořit</button>
+      
+      <p class="support-note">
+        Vaše podpora jde ze 100 % na provoz a rozvoj redakce.
+      </p>
     </aside>
   </div>
 </section>
 
-<style>
-@media (max-width:900px){
-    .main-article-grid{grid-template-columns:1fr !important}
-    .news-support-container{flex-direction:column}
-    .support-box{width:100% !important; max-width:500px}
-}
-</style>
+<script>
+    // Logika pro Widget Podpora
+    const btnOneTime = document.getElementById('btn-one-time');
+    const btnMonthly = document.getElementById('btn-monthly');
+
+    if(btnOneTime && btnMonthly) {
+        btnOneTime.addEventListener('click', () => {
+            btnOneTime.classList.add('active');
+            btnMonthly.classList.remove('active');
+        });
+        btnMonthly.addEventListener('click', () => {
+            btnMonthly.classList.add('active');
+            btnOneTime.classList.remove('active');
+        });
+    }
+
+    function setAmount(value) {
+        const input = document.getElementById('custom-amount-input');
+        if(input) {
+            input.value = value;
+            input.focus();
+        }
+    }
+</script>
 {% endblock %}

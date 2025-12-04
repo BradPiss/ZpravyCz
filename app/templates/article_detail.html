@@ -58,7 +58,7 @@
     <img class="article-image" src="{{ article.image_url }}" alt="{{ article.title }}" 
          style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:10px; margin-bottom:16px;">
     <p class="article-image-caption" style="font-size:13px; color:var(--muted); font-style:italic; margin-bottom:40px;">
-        Ilustrační snímek
+        {{ article.image_caption if article.image_caption else 'Ilustrační snímek' }}
     </p>
     {% endif %}
 
@@ -77,13 +77,16 @@
     <div style="margin-top:40px; padding-top:30px; border-top:1px solid var(--border);">
         <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:20px;">
             <div>
-                <h3 style="font-size:20px; font-weight:800; margin:0 0 4px 0;">Diskuse</h3>
+                <h3 style="font-size:20px; font-weight:800; margin:0 0 4px 0;">Diskuse ({{total_count}})</h3>
                 <p style="color:var(--muted); margin:0; font-size:14px;">Zapojte se do debaty k článku.</p>
             </div>
             
             <a href="/clanek/{{ article.id }}/diskuse" style="background:var(--bg); border:2px solid var(--border); color:var(--text); padding:10px 20px; border-radius:6px; font-weight:700; text-decoration:none; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:8px;">
                 <span>Vstoupit do diskuse</span>
-                <span style="background:var(--blue); color:white; padding:2px 8px; border-radius:10px; font-size:12px;">{{ comments_count }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <polyline points="13 5 21 12 13 19"></polyline>
+                </svg>
             </a>
         </div>
     </div>

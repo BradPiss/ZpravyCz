@@ -8,9 +8,9 @@ from app.models.category import Category
 from app.models.comment import Comment
 from app.models.vote import Vote
 from app.models.enums import Role, ArticleStatus
-import app.models # Důležité: Načte všechny modely i asociační tabulky
+import app.models
 
-# --- TVOJE DATA ---
+# --- TVOJE DATA (Zkráceno pro přehlednost, ale obsahují vše) ---
 articles_data = [
     {
         'title': 'Finále Ligy mistrů: Real Madrid vítězí',
@@ -19,6 +19,7 @@ articles_data = [
         'image_url': 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=1000',
         'home_position': 1,
         'category_name': 'Sport',
+        'image_caption': 'Radost hráčů Realu Madrid po vítězném gólu'
     },
     {
         'title': 'Nová linka metra D se otevírá',
@@ -109,12 +110,14 @@ def reset_database():
     db = SessionLocal()
     
     print("👤 Vytváření uživatelů...")
-    admin = User(email="admin@zpravy.cz", name="Hlavní Admin", password_hash=hash_password("tajneheslo123"), role=Role.ADMIN, is_active=True)
-    sef = User(email="sef@zpravy.cz", name="Karel Šéf", password_hash=hash_password("sef123"), role=Role.CHIEF_EDITOR, is_active=True)
-    redaktor = User(email="jan.novak@zpravy.cz", name="Jan Novák", password_hash=hash_password("redaktor123"), role=Role.EDITOR, is_active=True)
-    ctenar = User(email="pepa@mail.cz", name="Pepa Zdepa", password_hash=hash_password("pepa123"), role=Role.READER, is_active=True)
+    # VYTVOŘENÍ KONKRÉTNÍCH UŽIVATELŮ PODLE ZADÁNÍ
+    admin = User(email="admin@zpravy.cz", name="Hlavní Admin", password_hash=hash_password("heslo123"), role=Role.ADMIN, is_active=True)
+    sef = User(email="sefredaktor@zpravy.cz", name="Karel Šéf", password_hash=hash_password("heslo123"), role=Role.CHIEF_EDITOR, is_active=True)
+    redaktor = User(email="redaktor@zpravy.cz", name="Jan Novák", password_hash=hash_password("heslo123"), role=Role.EDITOR, is_active=True)
+    ctenar1 = User(email="ctenar@zpravy.cz", name="Jiří Novotný", password_hash=hash_password("heslo123"), role=Role.READER, is_active=True)
+    ctenar2 = User(email="ctenar2@zpravy.cz", name="Petr Svoboda", password_hash=hash_password("heslo123"), role=Role.READER, is_active=True)
     
-    db.add_all([admin, sef, redaktor, ctenar])
+    db.add_all([admin, sef, redaktor, ctenar1, ctenar2])
     db.commit()
     
     print("📂 Vytváření kategorií...")
@@ -124,7 +127,7 @@ def reset_database():
         c = Category(name=name, description=f"Zprávy z rubriky {name}")
         db.add(c)
         categories[name] = c
-    db.commit() # Abychom měli ID kategorií
+    db.commit() 
     
     print(f"📰 Vytváření {len(articles_data)} článků...")
     now = datetime.now(timezone.utc)
@@ -133,8 +136,6 @@ def reset_database():
     
     for i, data in enumerate(articles_data):
         cat = categories.get(data['category_name'])
-        
-        # Logika pro last_promoted_at (pokud je hlavní)
         last_promoted = now if data['home_position'] == 1 else None
         
         art = Article(
@@ -142,6 +143,7 @@ def reset_database():
             perex=data['perex'],
             content=data['content'],
             image_url=data['image_url'],
+            image_caption=data.get('image_caption', None), # Tady se načítá caption
             status=ArticleStatus.PUBLISHED,
             home_position=data['home_position'],
             last_promoted_at=last_promoted,
@@ -152,22 +154,16 @@ def reset_database():
         created_objects.append(art)
         db.add(art)
     
-    db.commit() # Uložíme články
+    db.commit() 
     
-    # --- PŘIDÁNÍ OBLÍBENÝCH (FAVORITES) ---
-    print("⭐ Vytváření testovacích oblíbených článků...")
-    
-    # Najdeme články pro uložení (třeba první dva)
-    article1 = created_objects[0]
-    article2 = created_objects[1]
-    
-    # Uživatel "Pepa" (čtenář) si je uloží
-    ctenar.saved_articles_rel.append(article1)
-    ctenar.saved_articles_rel.append(article2)
+    # --- OBLÍBENÉ (TEST) ---
+    print("⭐ Přidávání oblíbených...")
+    ctenar1.saved_articles_rel.append(created_objects[0])
+    ctenar1.saved_articles_rel.append(created_objects[1])
     
     db.commit()
     
-    print("✅ HOTOVO! Databáze je kompletně obnovena.")
+    print("✅ HOTOVO! Databáze je připravena s novými uživateli.")
     db.close()
 
 if __name__ == "__main__":

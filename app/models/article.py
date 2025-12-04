@@ -15,26 +15,20 @@ class Article(Base):
     content = Column(Text)
     image_url = Column(String, nullable=True)
     
-    # Časy
+    # NOVÉ: Popisek obrázku (nepovinný)
+    image_caption = Column(String, nullable=True)
+    
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
-    # Stav (Koncept / Vydáno)
     status = Column(SqEnum(ArticleStatus), default=ArticleStatus.DRAFT)
     
-    # --- NOVÉ SLOUPCE PRO POZICE ---
-    # 0=Seznam, 1=Hlavní, 2=Vlevo, 3=Střed, 4=Vpravo
     home_position = Column(Integer, default=0, index=True)
-    
-    # Kdy byl naposledy na pozici 1 (pro historii a automatické doplnění)
     last_promoted_at = Column(DateTime, nullable=True)
-    # -------------------------------
 
-    # Cizí klíče
     author_id = Column(Integer, ForeignKey("users.id"))
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
-    # Relace
     author = relationship("User", back_populates="articles")
     category = relationship("Category", back_populates="articles")
     tags = relationship("Tag", secondary=article_tags, back_populates="articles")
