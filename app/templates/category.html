@@ -40,7 +40,7 @@
 
             <div class="cat-content">
                 <div style="margin-bottom: 6px;">
-                    <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+                    <span class="news-time">{{ article.created_at | format_date }}</span>
                 </div>
                 
                 <h2 class="cat-headline">

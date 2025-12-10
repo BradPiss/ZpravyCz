@@ -6,8 +6,12 @@ from app.models.article import Article
 from app.models.category import Category
 from app.models.user import User
 from app.models.enums import ArticleStatus
-from app.models.comment import Comment # <--- DŮLEŽITÉ: Import Comment
+from app.models.comment import Comment 
+from app.models.tag import Tag
+from fastapi.responses import RedirectResponse
 from app.api.dependencies import get_current_user
+from sqlalchemy import or_
+
 import random
 
 router = APIRouter()
@@ -148,3 +152,33 @@ async def category_detail(
             "user": user
         }
     )
+
+@router.get("/hledat")
+async def search_articles(
+    request: Request,
+    q: str = "",
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user)
+):
+    if not q:
+        return RedirectResponse("/")
+
+    # OPRAVA: Musíme použít .outerjoin(Article.tags)
+    # Tím říkáme: "Připoj k článkům jejich tagy."
+    articles = db.query(Article).outerjoin(Article.tags).filter(
+        Article.status == ArticleStatus.PUBLISHED,
+        or_(
+            Article.title.contains(q),     # Hledá v nadpisu
+            Article.perex.contains(q),     # Hledá v perexu
+            Tag.name.contains(q)           # Hledá v názvu tagu
+        )
+    ).distinct().order_by(Article.created_at.desc()).all()
+    # .distinct() je důležité, aby se článek neukázal 2x, pokud má víc shodných tagů
+
+    return templates.TemplateResponse("search_results.html", {
+        "request": request,
+        "title": f"Hledání: {q}",
+        "query": q,
+        "articles": articles,
+        "user": user
+    })

@@ -13,6 +13,7 @@ from app.models.enums import ArticleStatus, Role
 from app.api.dependencies import get_current_user
 from app.models.comment import Comment
 from app.models.vote import Vote
+from app.models.tag import Tag
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 templates = Jinja2Templates(directory="app/templates")
@@ -20,6 +21,30 @@ templates = Jinja2Templates(directory="app/templates")
 def check_permissions(user: User):
     if not user or user.role not in [Role.ADMIN, Role.EDITOR, Role.CHIEF_EDITOR]:
         raise HTTPException(status_code=403, detail="Nemáte oprávnění vstoupit do administrace.")
+
+# Helper funkce pro zpracování tagů (vlož ji někam nad routery, nebo přímo do souboru)
+def process_tags(db: Session, tags_str: str):
+    if not tags_str:
+        return []
+    
+    # Rozdělit podle čárky a očistit mezery
+    tag_names = [t.strip() for t in tags_str.split(",") if t.strip()]
+    # Odstranit duplicity v rámci vstupu
+    tag_names = list(set(tag_names))
+    
+    final_tags = []
+    for name in tag_names:
+        # Zkusíme najít existující tag
+        tag = db.query(Tag).filter(Tag.name == name).first()
+        if not tag:
+            # Pokud neexistuje, vytvoříme nový
+            tag = Tag(name=name)
+            db.add(tag)
+            # Musíme flushnout, aby měl tag ID, pokud bychom ho hned potřebovali, 
+            # ale SQLAlchemy si to pořeší při commitu
+        final_tags.append(tag)
+    return final_tags
+
 
 # 1. SEZNAM
 @router.get("/clanky")
@@ -42,8 +67,9 @@ async def create_article_submit(
     perex: str = Form(...),
     content: str = Form(...),
     category_id: int = Form(...),
+    tags: str = Form(""), # <--- PŘIJÍMÁME TAGY
     image_url: Optional[str] = Form(None),
-    image_caption: Optional[str] = Form(None), # <--- NOVÉ
+    image_caption: Optional[str] = Form(None),
     status: str = Form(...),
     home_position: int = Form(0),
     db: Session = Depends(get_db),
@@ -72,6 +98,7 @@ async def create_article_submit(
         status=status, home_position=home_position, last_promoted_at=last_promoted,
         author_id=user.id, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc)
     )
+    new_article.tags = process_tags(db, tags)
     db.add(new_article)
     db.commit()
     return RedirectResponse("/admin/clanky", status_code=302)
@@ -93,8 +120,9 @@ async def edit_article_submit(
     perex: str = Form(...),
     content: str = Form(...),
     category_id: int = Form(...),
+    tags: str = Form(""),
     image_url: Optional[str] = Form(None),
-    image_caption: Optional[str] = Form(None), # <--- NOVÉ
+    image_caption: Optional[str] = Form(None),
     status: str = Form(...),
     home_position: int = Form(0),
     db: Session = Depends(get_db),
@@ -129,6 +157,7 @@ async def edit_article_submit(
     article.status = status
     article.home_position = home_position
     article.updated_at = datetime.now(timezone.utc)
+    article.tags = process_tags(db, tags)
     
     db.commit()
     return RedirectResponse("/admin/clanky", status_code=302)

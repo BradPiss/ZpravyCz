@@ -45,6 +45,14 @@
             </select>
         </div>
 
+        <div>
+            <label style="display:block; font-weight:700; margin-bottom:8px;">Tagy (oddělené čárkou)</label>
+            <input type="text" name="tags" 
+                   value="{% if article %}{{ article.tags|map(attribute='name')|join(', ') }}{% endif %}"
+                   placeholder="Např. sport, fotbal, finále"
+                   style="width:100%; padding:12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--text);">
+        </div>
+
         <div style="background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:20px;">
             
             <label style="display:block; font-weight:700; margin-bottom:12px;">Stav publikace</label>

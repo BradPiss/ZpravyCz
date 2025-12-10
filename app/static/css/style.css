@@ -1,3 +1,4 @@
+
 /* 1. RESET A FONT (Vynucení Interu všude) */
 html, body, button, input, textarea, select, a, h1, h2, h3, h4, h5, h6, span, div {
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
@@ -323,3 +324,195 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 
 /* Patička */
 .support-note { font-size: 11px; color: var(--muted); text-align: left; line-height: 1.4; margin: 0; }
+
+/* --- SEARCH WIDGET --- */
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-toggle {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue);
+    transition: opacity 0.3s;
+}
+
+.search-toggle:hover { opacity: 0.7; }
+
+/* Formulář, který se vysouvá */
+.search-form {
+    position: absolute;
+    right: 40px; /* Posunutí vedle ikonky */
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0; /* Výchozí stav: skryto */
+    overflow: hidden;
+    transition: width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    background: var(--bg); /* Aby překryl datum */
+    z-index: 20;
+    white-space: nowrap;
+    border-radius: 6px;
+}
+
+/* Aktivní stav formuláře */
+.search-form.active {
+    width: 580px; /* Šířka po otevření */
+    max-width: calc(100vw - 220px); /* Responzivní šířka */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid var(--blue);
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--bg);
+    color: var(--text);
+    box-sizing: border-box; /* Důležité pro padding */
+}
+
+/* Responsivita pro mobily */
+@media (max-width: 600px) {
+    .header-inner { 
+        flex-direction: row; 
+        gap: 8px; 
+    }
+    
+    .search-form.active {
+        /* Na mobilu ubereme z rezervy, protože logo je menší nebo ikony jsou blíž */
+        max-width: calc(100vw - 140px);
+    }
+}
+
+/* tablet */
+@media (max-width: 900px) {
+    .header-date {
+        display: none;
+    }
+}
+
+/* --- ARTIKLE TAGS --- */
+.article-tags-wrapper {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.tags-label {
+    font-weight: 700;
+    color: var(--muted);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.article-tag {
+    display: inline-block;
+    padding: 6px 14px;
+    background-color: var(--bg);
+    color: var(--blue);
+    border: 1px solid var(--blue); /* Jemný rámeček v barvě webu */
+    border-radius: 20px; /* Zaoblené rohy */
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.article-tag:hover {
+    background-color: var(--blue);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 52, 155, 0.2);
+}
+
+/* Dark mode úprava */
+[data-theme="dark"] .article-tag {
+    background-color: rgba(66, 107, 184, 0.1); /* Průhledná modrá */
+    border-color: var(--blue);
+}
+[data-theme="dark"] .article-tag:hover {
+    background-color: var(--blue);
+    color: white;
+}
+
+/* --- TEXT ČLÁNKU - ODSTAVCE --- */
+.article-content p {
+    margin-bottom: 24px; /* Zvětší mezeru pod každým odstavcem */
+    margin-top: 0;      /* Horní mezeru raději vynulujeme, aby se to nesčítalo */
+}
+
+/* Volitelné: Pokud bys chtěl odsazení i u nadpisů uvnitř článku */
+.article-content h2, 
+.article-content h3 {
+    margin-top: 32px;
+    margin-bottom: 16px;
+}
+
+/* --- HOVER EFEKTY PRO KARTY ČLÁNKŮ (FINAL FIX) --- */
+/* Používáme !important, abychom přebili inline styly v HTML */
+
+/* 1. HLAVNÍ ČLÁNEK */
+/* Když je myš na odkazu uvnitř .clickable-area (obrázek nebo nadpis) */
+.main-article-grid:has(.clickable-area a:hover) .headline-main {
+    text-decoration: underline !important;
+    text-decoration-thickness: 3px !important;
+    text-decoration-color: var(--blue) !important;
+}
+
+/* 2. SEKUNDÁRNÍ ČLÁNKY (Tři vedle sebe/pod sebou) */
+.secondary-grid article:has(.clickable-area a:hover) .headline-sub {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-decoration-color: var(--blue) !important;
+}
+
+/* 3. DALŠÍ ZPRÁVY (Seznam) */
+/* Tady to vyřeší problém s kategorií a perexem - ty totiž nejsou v .clickable-area */
+.list-article:has(.clickable-area a:hover) .headline-list {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-decoration-color: var(--blue) !important;
+}
+
+/* 4. KATEGORIE A VÝSLEDKY HLEDÁNÍ */
+/* Zde .clickable-area nemáme, takže použijeme obecný hover na odkaz */
+.cat-article-card:has(a:hover) .cat-headline a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-decoration-color: var(--blue) !important;
+}
+
+/* Styl pro samotný odkaz "Celý článek" */
+.read-more-link:hover {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+}
+
+/* Pojistka: Resetování hoveru pro samotné nadpisy, aby nedělaly neplechu */
+.headline-main:hover,
+.headline-sub:hover,
+.headline-list:hover {
+    text-decoration: underline !important; 
+}

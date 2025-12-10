@@ -17,7 +17,7 @@
   </div>
   <div style="padding-top:4px">
     <div style="margin-bottom:10px">
-        <span class="news-time">Dnes {{ main_article.created_at.strftime('%H:%M') }}</span>
+        <span class="news-time">{{ main_article.created_at | format_date }}</span>
     </div>
     <div class="clickable-area">
       <h1>
@@ -44,7 +44,7 @@
                style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px;">
       </a>
       <div style="margin-top:10px">
-          <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+          <span class="news-time">{{ article.created_at | format_date }}</span>
       </div>
       <h2>
           <a href="{{ url_for('article_detail', article_id=article.id) }}" class="headline-sub" style="font-size:18px;font-weight:800;margin:8px 0;display:block;color:var(--blue);text-decoration:none;">
@@ -71,7 +71,7 @@
         <article class="list-article {% if loop.index0 >= 6 %}hidden-article{% endif %}">
           <div style="flex:1">
             <div style="margin-bottom:8px">
-                <span class="news-time">Dnes {{ article.created_at.strftime('%H:%M') }}</span>
+                <span class="news-time">{{ article.created_at | format_date }}</span>
                 {% if article.category %}
                 <span style="color:var(--blue); font-weight:700; font-size:13px; text-transform:uppercase; margin-left:8px;">
                      <a href="{{ url_for('category_detail', category_id=article.category.id) }}" style="text-decoration:none; color:inherit;">
