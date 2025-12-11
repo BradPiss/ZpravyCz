@@ -20,3 +20,7 @@ class CommentRepository:
     def delete(self, db: Session, comment: Comment):
         db.delete(comment)
         db.commit()
+
+    def delete_by_author(self, db: Session, author_id: int):
+        db.query(Comment).filter(Comment.author_id == author_id).delete()
+        db.commit()

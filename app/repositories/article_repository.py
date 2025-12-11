@@ -23,7 +23,13 @@ class ArticleRepository:
             query = query.filter(Article.id.notin_(exclude_ids))
         return query.order_by(desc(Article.created_at)).limit(limit).all()
 
-    def get_fallback_main(self, db: Session):
+    def get_by_category(self, db: Session, category_id: int, limit: int = 4, exclude_id: int = None):
+        query = db.query(Article).filter(Article.status == ArticleStatus.PUBLISHED, Article.category_id == category_id)
+        if exclude_id:
+            query = query.filter(Article.id != exclude_id)
+        return query.order_by(desc(Article.created_at)).limit(limit).all()
+
+    def get_fallback_main_article(self, db: Session):
         return db.query(Article).filter(Article.status == ArticleStatus.PUBLISHED, Article.last_promoted_at != None, Article.home_position == 0).order_by(desc(Article.last_promoted_at)).first()
 
     def search(self, db: Session, query: str):
@@ -46,14 +52,16 @@ class ArticleRepository:
             db.add(tag)
             db.flush()
         return tag
-    
-    def get_by_category(self, db: Session, category_id: int, limit: int = 4, exclude_id: int = None):
-        query = db.query(Article).filter(
-            Article.status == ArticleStatus.PUBLISHED,
-            Article.category_id == category_id
-        )
-        
-        if exclude_id:
-            query = query.filter(Article.id != exclude_id)
-            
-        return query.order_by(desc(Article.created_at)).limit(limit).all()
+
+    def reset_home_position(self, db: Session, position: int):
+        existing = self.get_published_by_position(db, position)
+        if existing:
+            existing.home_position = 0
+            db.add(existing)
+            db.commit()
+
+    def transfer_to_user(self, db: Session, from_user_id: int, to_user_id: int):
+        articles = db.query(Article).filter(Article.author_id == from_user_id).all()
+        for a in articles:
+            a.author_id = to_user_id
+        db.commit()

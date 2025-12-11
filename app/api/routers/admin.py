@@ -3,10 +3,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from typing import Optional
+
 from app.models.db import get_db
 from app.models.user import User
 from app.models.enums import Role, ArticleStatus
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_admin_editor, get_current_super_admin
 from app.services.article_service import ArticleService
 from app.services.auth_service import AuthService
 from app.repositories.category_repository import CategoryRepository
@@ -20,25 +21,13 @@ auth_service = AuthService()
 cat_repo = CategoryRepository()
 user_repo = UserRepository()
 
-def check_permissions(user: User):
-    if not user or user.role not in [Role.ADMIN, Role.EDITOR, Role.CHIEF_EDITOR]:
-        raise HTTPException(status_code=403, detail="Nemáte oprávnění vstoupit do administrace.")
-
-def check_admin_permissions(user: User):
-    if not user or user.role != Role.ADMIN:
-        raise HTTPException(status_code=403, detail="Tuto akci může provést pouze administrátor.")
-
-# --- SPRÁVA ČLÁNKŮ ---
-
 @router.get("/clanky")
-async def admin_article_list(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_permissions(user)
+async def admin_article_list(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_admin_editor)):
     articles = article_service.get_all_for_admin(db)
     return templates.TemplateResponse("admin/article_list.html", {"request": request, "articles": articles, "user": user})
 
 @router.get("/clanky/novy")
-async def create_article_form(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_permissions(user)
+async def create_article_form(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_admin_editor)):
     categories = cat_repo.get_all(db)
     return templates.TemplateResponse("admin/article_form.html", {
         "request": request, 
@@ -60,26 +49,29 @@ async def create_article_submit(
     status: str = Form(...),
     home_position: int = Form(0),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_admin_editor)
 ):
-    check_permissions(user)
-    
     if status == ArticleStatus.PUBLISHED.value and user.role == Role.EDITOR:
         raise HTTPException(status_code=403, detail="Redaktor nemůže publikovat články.")
 
-    data = locals()
-    data.pop('db', None)
-    data.pop('user', None)
+    article_data = {
+        "title": title,
+        "perex": perex,
+        "content": content,
+        "category_id": category_id,
+        "tags": tags,
+        "image_url": image_url,
+        "image_caption": image_caption,
+        "status": status,
+        "home_position": home_position
+    }
     
-    article_service.create_article(db, data, user.id)
+    article_service.create_article(db, article_data, user.id)
     return RedirectResponse("/admin/clanky", status_code=302)
 
 @router.get("/clanky/{article_id}/upravit")
-async def edit_article_form(article_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_permissions(user)
-    
+async def edit_article_form(article_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_admin_editor)):
     article = article_service.get_by_id(db, article_id)
-    
     if not article: 
         raise HTTPException(404, "Článek nenalezen")
     
@@ -105,48 +97,42 @@ async def edit_article_submit(
     status: str = Form(...),
     home_position: int = Form(0),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_admin_editor)
 ):
-    check_permissions(user)
-
     article = article_service.get_by_id(db, article_id)
-    
     if not article: raise HTTPException(404)
 
     if status == ArticleStatus.PUBLISHED.value:
         if user.role == Role.EDITOR and article.status != ArticleStatus.PUBLISHED:
              raise HTTPException(status_code=403, detail="Redaktor nemůže publikovat koncepty.")
 
-    data = locals()
-    data.pop('db', None)
-    data.pop('user', None)
-    data.pop('article_id', None)
-    data.pop('article', None)
+    article_data = {
+        "title": title,
+        "perex": perex,
+        "content": content,
+        "category_id": category_id,
+        "tags": tags,
+        "image_url": image_url,
+        "image_caption": image_caption,
+        "status": status,
+        "home_position": home_position
+    }
     
-    article_service.update_article(db, article_id, data)
+    article_service.update_article(db, article_id, article_data)
     return RedirectResponse("/admin/clanky", status_code=302)
 
 @router.post("/clanky/{article_id}/smazat")
-async def delete_article(article_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_permissions(user)
+async def delete_article(article_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_admin_editor)):
     article_service.delete_article(db, article_id)
     return RedirectResponse("/admin/clanky", status_code=302)
 
-
-# --- SPRÁVA UŽIVATELŮ ---
-
 @router.get("/uzivatele")
-async def admin_user_list(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if not user or user.role != Role.ADMIN: 
-        return RedirectResponse("/", status_code=302)
-        
+async def admin_user_list(request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_super_admin)):
     users = user_repo.get_all(db)
     return templates.TemplateResponse("admin/user_list.html", {"request": request, "users": users, "user": user})
 
 @router.get("/uzivatele/{user_id}/upravit")
-async def edit_user_form(user_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_admin_permissions(user)
-    
+async def edit_user_form(user_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_current_super_admin)):
     edit_user = user_repo.get_by_id(db, user_id)
     if not edit_user: 
         raise HTTPException(404, "Uživatel nenalezen")
@@ -164,10 +150,8 @@ async def edit_user_submit(
     role: str = Form(...), 
     is_active: bool = Form(False), 
     db: Session = Depends(get_db), 
-    user: User = Depends(get_current_user)
+    user: User = Depends(get_current_super_admin)
 ):
-    check_admin_permissions(user)
-    
     if user_id == user.id:
         role = Role.ADMIN
         is_active = True
@@ -179,9 +163,6 @@ async def edit_user_submit(
     return RedirectResponse("/admin/uzivatele", status_code=302)
 
 @router.post("/uzivatele/{user_id}/smazat")
-async def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    check_admin_permissions(user)
-    
+async def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_super_admin)):
     auth_service.delete_user_complex(db, user_id, user.id)
-        
     return RedirectResponse("/admin/uzivatele", status_code=302)

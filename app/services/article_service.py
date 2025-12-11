@@ -12,15 +12,8 @@ class ArticleService:
         self.repo = ArticleRepository()
         self.cat_repo = CategoryRepository()
         self.comment_repo = CommentRepository()
-        self.vote_repo = VoteRepository() # Kvuli mazani clanku
+        self.vote_repo = VoteRepository()
 
-    def get_all_for_admin(self, db: Session):
-        return self.repo.get_all_admin(db)
-
-    def get_by_id(self, db: Session, article_id: int):
-        return self.repo.get_by_id(db, article_id)
-    
-    # -- READ (Home & Detail) ---
     def get_homepage_data(self, db: Session):
         main_article = self.repo.get_published_by_position(db, 1)
         
@@ -31,7 +24,7 @@ class ArticleService:
         list_articles = self.repo.get_latest_published(db, limit=50)
 
         if not main_article:
-            fallback = self.repo.get_fallback_main(db)
+            fallback = self.repo.get_fallback_main_article(db)
             if fallback:
                 main_article = fallback
 
@@ -56,7 +49,6 @@ class ArticleService:
             return None
         
         comments_count = self.comment_repo.count_visible(db, article_id)
-
         related = []
         if article.category_id:
             related = self.repo.get_by_category(db, article.category_id, limit=4, exclude_id=article.id)
@@ -81,13 +73,15 @@ class ArticleService:
     def search(self, db: Session, query: str):
         return self.repo.search(db, query)
 
-    # --- WRITE ---
+    def get_all_for_admin(self, db: Session):
+        return self.repo.get_all_admin(db)
+
+    def get_by_id(self, db: Session, article_id: int):
+        return self.repo.get_by_id(db, article_id)
+
     def create_article(self, db: Session, data: dict, user_id: int):
         if data.get('home_position', 0) > 0 and data.get('status') == ArticleStatus.PUBLISHED.value:
-            old = self.repo.get_published_by_position(db, data['home_position'])
-            if old:
-                old.home_position = 0
-                db.add(old)
+            self.repo.reset_home_position(db, data['home_position'])
         
         if data.get('status') != ArticleStatus.PUBLISHED.value:
             data['home_position'] = 0
@@ -110,7 +104,7 @@ class ArticleService:
         )
         
         if data.get('tags'):
-            new_article.tags = self._process_tags(db, data['tags'])
+            new_article.tags = self.process_tags_string(db, data['tags'])
             
         return self.repo.create(db, new_article)
 
@@ -121,14 +115,19 @@ class ArticleService:
         if data.get('status') == ArticleStatus.PUBLISHED.value and data.get('home_position', 0) > 0:
             old = self.repo.get_published_by_position(db, data['home_position'])
             if old and old.id != article.id:
-                old.home_position = 0
-                db.add(old)
+                self.repo.reset_home_position(db, data['home_position'])
         
-        for key, value in data.items():
-            if key == 'tags':
-                article.tags = self._process_tags(db, value)
-            elif hasattr(article, key):
-                setattr(article, key, value)
+        allowed_fields = [
+            'title', 'perex', 'content', 'category_id', 
+            'image_url', 'image_caption', 'status', 'home_position'
+        ]
+        
+        for field in allowed_fields:
+            if field in data:
+                setattr(article, field, data[field])
+
+        if 'tags' in data:
+            article.tags = self.process_tags_string(db, data['tags'])
         
         article.updated_at = datetime.now(timezone.utc)
         db.commit()
@@ -154,7 +153,7 @@ class ArticleService:
         db.commit()
         return action
 
-    def _process_tags(self, db: Session, tags_str: str):
+    def process_tags_string(self, db: Session, tags_str: str):
         if not tags_str: return []
         names = list(set([t.strip() for t in tags_str.split(",") if t.strip()]))
         return [self.repo.get_or_create_tag(db, name) for name in names]

@@ -114,22 +114,17 @@ articles_data = [
 ]
 
 def reset_database():
-    print("🧨 Mazání staré databáze...")
-    # Cesta k DB souboru (o dvě úrovně výš)
     db_path = os.path.join(os.path.dirname(__file__), '../../news.db')
     if os.path.exists(db_path):
         try:
             os.remove(db_path)
         except PermissionError:
-            print("❌ CHYBA: Databázi někdo používá. Vypni server (Ctrl+C) a zkus to znovu!")
+            print("chyba")
             return
     
-    print("🏗️  Vytváření tabulek...")
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
-    
-    print("👤 Vytváření uživatelů...")
 
     default_pw = hash_password("heslo123")
     
@@ -146,8 +141,6 @@ def reset_database():
     db.commit()
     
     redaktor = users[2] 
-    
-    print("📂 Vytváření kategorií...")
     categories = {}
     cat_names = set(a['category_name'] for a in articles_data)
     for name in cat_names:
@@ -156,7 +149,6 @@ def reset_database():
         categories[name] = c
     db.commit() 
     
-    print(f"📰 Vytváření {len(articles_data)} článků...")
     now = datetime.now(timezone.utc)
     
     created_objects = []
@@ -186,8 +178,7 @@ def reset_database():
     
     db.commit() 
     
-    print("✅ HOTOVO! Databáze je obnovena.")
-    print("ℹ️  Všichni uživatelé mají heslo: heslo123")
+    print("Hotovo")
     db.close()
 
 if __name__ == "__main__":
