@@ -1,28 +1,28 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
-def format_date(value):
+def format_date(value, relative=True):
     if not value:
         return ""
     
-    # Získáme aktuální čas. Abychom se vyhnuli chybám s časovými zónami,
-    # použijeme stejnou timezonu, jakou má předaný datum (pokud ji má),
-    # nebo prostě porovnáme jen dny.
-    
-    # Pokud je value 'naive' (bez info o zone), použijeme now() taky naive.
+    # 1. UTC fix
     if value.tzinfo is None:
-        now = datetime.now()
+        value = value.replace(tzinfo=timezone.utc)
+    
+    # 2. Převod na Prahu
+    prague_tz = ZoneInfo("Europe/Prague")
+    local_time = value.astimezone(prague_tz)
+    
+    # 3. Pokud nechceme relativní (Dnes/Včera), vrátíme rovnou formát
+    if not relative:
+        return local_time.strftime('%d.%m. %H:%M')
+    
+    # 4. Logika pro Dnes/Včera
+    now = datetime.now(prague_tz)
+    
+    if local_time.date() == now.date():
+        return f"Dnes {local_time.strftime('%H:%M')}"
+    elif local_time.date() == (now.date() - timedelta(days=1)):
+        return f"Včera {local_time.strftime('%H:%M')}"
     else:
-        # Pokud má value timezone (což tvoje appka má - UTC), použijeme now(tz)
-        now = datetime.now(value.tzinfo)
-
-    today = now.date()
-    article_date = value.date()
-
-    # Logika pro Dnes / Včera / Datum
-    if article_date == today:
-        return f"Dnes {value.strftime('%H:%M')}"
-    elif article_date == (today - timedelta(days=1)):
-        return f"Včera {value.strftime('%H:%M')}"
-    else:
-        # Pro starší články: např. 04.12. 15:30
-        return value.strftime('%d.%m. %H:%M')
+        return local_time.strftime('%d.%m. %H:%M')

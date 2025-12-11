@@ -14,6 +14,12 @@ class ArticleService:
         self.comment_repo = CommentRepository()
         self.vote_repo = VoteRepository() # Kvůli mazání článku (smazat i hlasy)
 
+    def get_all_for_admin(self, db: Session):
+        return self.repo.get_all_admin(db)
+
+    def get_by_id(self, db: Session, article_id: int):
+        return self.repo.get_by_id(db, article_id)
+    
     # --- READ (Home & Detail) ---
     def get_homepage_data(self, db: Session):
         main_article = self.repo.get_published_by_position(db, 1)
@@ -51,11 +57,10 @@ class ArticleService:
             return None
         
         comments_count = self.comment_repo.count_visible(db, article_id)
-        
-        # Související články
-        related = self.repo.get_latest_published(db, limit=4, exclude_ids=[article_id])
+
+        related = []
         if article.category_id:
-            related = [a for a in related if a.category_id == article.category_id][:4]
+            related = self.repo.get_by_category(db, article.category_id, limit=4, exclude_id=article.id)
         
         return {
             "article": article,

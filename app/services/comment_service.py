@@ -12,25 +12,44 @@ class CommentService:
 
     def get_tree(self, db: Session, article_id: int, user_id: int = None):
         comments = self.repo.get_visible_by_article(db, article_id)
-        user_votes = {v.comment_id: v.vote_type for v in self.vote_repo.get_user_votes(db, user_id)} if user_id else {}
+        
+        # Načteme hlasy uživatele, abychom věděli, co lajkoval
+        user_votes = {}
+        if user_id:
+            votes = self.vote_repo.get_user_votes(db, user_id)
+            user_votes = {v.comment_id: v.vote_type for v in votes}
         
         replies_map = {}
         for c in comments:
+            # Přiřadíme informaci o hlasu uživatele
             vote = user_votes.get(c.id)
-            if (vote == 'up' and c.likes == 0) or (vote == 'down' and c.dislikes == 0): vote = None
+            # Čistka: pokud dal like, ale počet liků je 0 (chyba v DB), raději to nezobrazíme
+            if (vote == 'up' and c.likes == 0) or (vote == 'down' and c.dislikes == 0): 
+                vote = None
             c.user_vote = vote
+            
             c.children = []
             if c.parent_id:
-                if c.parent_id not in replies_map: replies_map[c.parent_id] = []
+                if c.parent_id not in replies_map: 
+                    replies_map[c.parent_id] = []
                 replies_map[c.parent_id].insert(0, c)
                 
         for c in comments:
             c.children = replies_map.get(c.id, [])
             
+        # Vracíme jen kořenové komentáře (odpovědi jsou v .children)
         return [c for c in comments if c.parent_id is None]
 
     def add(self, db: Session, content: str, article_id: int, user_id: int, parent_id: int = None):
-        return self.repo.create(db, Comment(content=content, article_id=article_id, author_id=user_id, parent_id=parent_id, created_at=datetime.now(timezone.utc)))
+        comment = Comment(
+            content=content, 
+            article_id=article_id, 
+            author_id=user_id, 
+            parent_id=parent_id, 
+            created_at=datetime.now(timezone.utc),
+            is_visible=True
+        )
+        return self.repo.create(db, comment)
 
     def vote(self, db: Session, comment_id: int, user_id: int, vote_type: str):
         comment = self.repo.get_by_id(db, comment_id)
@@ -40,17 +59,39 @@ class CommentService:
         current = "none"
         
         if existing:
-            if existing.vote_type == vote_type: self.vote_repo.delete(db, existing)
+            if existing.vote_type == vote_type: 
+                # Ruší hlas
+                self.vote_repo.delete(db, existing)
             else:
+                # Mění hlas
                 existing.vote_type = vote_type
                 db.commit()
                 current = vote_type
         else:
+            # Nový hlas
             self.vote_repo.create(db, Vote(user_id=user_id, comment_id=comment_id, vote_type=vote_type))
             current = vote_type
             
+        # Přepočítáme aktuální stav
         comment.likes = self.vote_repo.count_likes(db, comment_id)
         comment.dislikes = self.vote_repo.count_dislikes(db, comment_id)
         db.commit()
         
         return {"likes": comment.likes, "dislikes": comment.dislikes, "user_vote": current}
+
+    # TATO METODA CHYBĚLA:
+    def delete_comment(self, db: Session, comment_id: int, user):
+        comment = self.repo.get_by_id(db, comment_id)
+        if not comment: return None
+        
+        is_admin = user.role.value == 'admin'
+        is_author = user.id == comment.author_id
+        
+        if is_admin or is_author:
+            # Uložíme si ID článku pro přesměrování
+            article_id = comment.article_id
+            # Smazání (DB se postará o smazání hlasů a odpovědí díky cascade)
+            self.repo.delete(db, comment)
+            return article_id
+            
+        return None

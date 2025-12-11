@@ -13,25 +13,49 @@ svc = ArticleService()
 @router.get("/")
 async def home(request: Request, db: Session = Depends(get_db), user = Depends(get_current_user)):
     data = svc.get_homepage_data(db)
-    return templates.TemplateResponse("index.html", {"request": request, "title": "Zprávy.cz", "user": user, **data})
+    return templates.TemplateResponse("index.html", {
+        "request": request, 
+        "title": "Zprávy.cz", 
+        "user": user, 
+        **data
+    })
 
 @router.get("/clanek/{article_id}", name="article_detail")
 async def article_detail(request: Request, article_id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
     data = svc.get_detail(db, article_id)
-    if not data: raise HTTPException(404, "Článek nenalezen")
-    return templates.TemplateResponse("article_detail.html", {"request": request, "title": data['article'].title, "user": user, **data})
+    if not data: 
+        raise HTTPException(status_code=404, detail="Článek nenalezen")
+    
+    return templates.TemplateResponse("article_detail.html", {
+        "request": request, 
+        "title": data['article'].title, 
+        "user": user, 
+        **data
+    })
 
 @router.get("/kategorie/{category_id}", name="category_detail")
 async def category_detail(request: Request, category_id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    cat = svc.category_repo.get_by_id(db, category_id)
-    if not cat: raise HTTPException(404, "Kategorie nenalezena")
-    # Lazy loading articles
-    articles = [a for a in cat.articles if a.status.value == 'published']
-    articles.sort(key=lambda x: x.created_at, reverse=True)
-    return templates.TemplateResponse("category.html", {"request": request, "title": f"{cat.name} | Zprávy.cz", "articles": articles, "category": cat, "user": user})
+    # OPRAVA: Používáme metodu služby, ne přímý přístup k repozitáři
+    data = svc.get_category_detail(db, category_id)
+    
+    if not data: 
+        raise HTTPException(status_code=404, detail="Kategorie nenalezena")
+
+    return templates.TemplateResponse("category.html", {
+        "request": request, 
+        "title": f"{data['category'].name} | Zprávy.cz", 
+        "user": user,
+        **data # Rozbalí: category, articles
+    })
 
 @router.get("/hledat")
 async def search(request: Request, q: str = "", db: Session = Depends(get_db), user = Depends(get_current_user)):
     if not q: return RedirectResponse("/")
     articles = svc.search(db, q)
-    return templates.TemplateResponse("search_results.html", {"request": request, "title": f"Hledání: {q}", "query": q, "articles": articles, "user": user})
+    return templates.TemplateResponse("search_results.html", {
+        "request": request, 
+        "title": f"Hledání: {q}", 
+        "query": q, 
+        "articles": articles, 
+        "user": user
+    })
