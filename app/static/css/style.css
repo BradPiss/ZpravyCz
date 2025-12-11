@@ -1,7 +1,46 @@
+/* 1. RESET A FONT (Vynucení Interu všude + Náhrada za Tailwind Preflight) */
 
-/* 1. RESET A FONT (Vynucení Interu všude) */
-html, body, button, input, textarea, select, a, h1, h2, h3, h4, h5, h6, span, div {
+/* Toto pravidlo zajistí, že padding neroztahuje elementy (oprava velikosti widgetu) */
+*, ::before, ::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: #e5e7eb;
+}
+
+/* Resetování výchozích stylů prohlížeče */
+html, body, button, input, textarea, select, a, h1, h2, h3, h4, h5, h6, span, div, p, ul, li {
     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+button {
+    background-color: transparent;
+    background-image: none;
+    cursor: pointer;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* --- FIX PROTI POSKAKOVÁNÍ STRÁNKY --- */
+html {
+    scrollbar-gutter: stable;
+    line-height: 1.5;
 }
 
 :root {
@@ -76,9 +115,34 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 .headline-list:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 .list-preview { color: var(--preview-text); font-size: 14px; line-height: 1.5; margin-top: 8px; transition: color 0.3s ease; }
 
+/* --- TLAČÍTKO ZOBRAZIT DALŠÍ (LOAD MORE) --- */
+.load-more-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    color: var(--text);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.load-more-btn:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+    background-color: rgba(0, 52, 155, 0.05);
+}
+[data-theme="dark"] .load-more-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
 /* Responsive */
 @media (max-width: 600px) {
-    .header-inner { flex-direction: row; gap: 8px; }
+    .header-inner { flex-direction: row; gap: 8px; padding: 14px 10px; }
+    .site-logo { height: 32px; }
     .header-date { display: none; }
     .list-article { flex-direction: column-reverse; }
     .img-list { width: 100%; aspect-ratio: 16/9; }
@@ -230,7 +294,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     padding: 24px;
     background: var(--bg);
     transition: border-color 0.3s ease, background-color 0.3s ease;
-    /* Zarovnání s dividerem */
     margin-top: 58px; 
 }
 
@@ -250,11 +313,10 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     .support-box { width: 100%; max-width: 500px; margin: 40px auto 0 auto; }
 }
 
-/* --- NOVÝ WIDGET PODPORA --- */
+/* --- WIDGET PODPORA --- */
 .support-title { font-size: 20px; font-weight: 800; margin: 0 0 12px 0; }
 .support-description { font-size: 14px; line-height: 1.5; color: var(--preview-text); margin-bottom: 20px; }
 
-/* Přepínač */
 .payment-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
 .payment-toggle button {
     flex: 1;
@@ -275,7 +337,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 }
 .payment-toggle button:hover:not(.active) { border-color: var(--blue); }
 
-/* Mřížka částek */
 .amount-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
 .amount-btn {
     padding: 12px;
@@ -291,7 +352,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 .amount-btn:hover { border-color: var(--blue); color: var(--blue); background-color: rgba(0, 52, 155, 0.05); }
 [data-theme="dark"] .amount-btn:hover { background-color: rgba(255, 255, 255, 0.05); }
 
-/* Vlastní částka */
 .custom-amount {
     width: 100%;
     padding: 12px;
@@ -306,7 +366,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 }
 .custom-amount:focus { outline: none; border-color: var(--blue); }
 
-/* Tlačítko odeslat */
 .support-submit {
     width: 100%;
     padding: 14px;
@@ -322,7 +381,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 }
 .support-submit:hover { opacity: 0.9; }
 
-/* Patička */
 .support-note { font-size: 11px; color: var(--muted); text-align: left; line-height: 1.4; margin: 0; }
 
 /* --- SEARCH WIDGET --- */
@@ -343,29 +401,30 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     justify-content: center;
     color: var(--blue);
     transition: opacity 0.3s;
+    width: 40px; 
+    height: 40px;
 }
 
 .search-toggle:hover { opacity: 0.7; }
 
-/* Formulář, který se vysouvá */
 .search-form {
     position: absolute;
-    right: 40px; /* Posunutí vedle ikonky */
+    right: 100%; 
     top: 50%;
     transform: translateY(-50%);
-    width: 0; /* Výchozí stav: skryto */
+    width: 0; 
     overflow: hidden;
-    transition: width 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-    background: var(--bg); /* Aby překryl datum */
+    transition: width 0.3s ease-out, max-width 0.3s ease-out;
+    background: var(--bg);
     z-index: 20;
     white-space: nowrap;
     border-radius: 6px;
+    margin-right: 8px;
 }
 
-/* Aktivní stav formuláře */
 .search-form.active {
-    width: 580px; /* Šířka po otevření */
-    max-width: calc(100vw - 220px); /* Responzivní šířka */
+    width: 560px; 
+    max-width: calc(100vw - 360px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
@@ -379,34 +438,20 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     font-weight: 500;
     background: var(--bg);
     color: var(--text);
-    box-sizing: border-box; /* Důležité pro padding */
+    box-sizing: border-box;
 }
 
-/* Responsivita pro mobily */
-@media (max-width: 600px) {
-    .header-inner { 
-        flex-direction: row; 
-        gap: 8px; 
-    }
-    
-    .search-form.active {
-        /* Na mobilu ubereme z rezervy, protože logo je menší nebo ikony jsou blíž */
-        max-width: calc(100vw - 140px);
-    }
-}
-
-/* tablet */
 @media (max-width: 900px) {
-    .header-date {
-        display: none;
-    }
+    .header-date { display: none; }
+    .search-form.active { width: 400px; max-width: calc(100vw - 300px); }
+}
+
+@media (max-width: 600px) {
+    .search-form.active { max-width: calc(100vw - 160px); }
 }
 
 /* --- ARTIKLE TAGS --- */
 .article-tags-wrapper {
-    margin-top: 48px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -432,8 +477,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     padding: 6px 14px;
     background-color: var(--bg);
     color: var(--blue);
-    border: 1px solid var(--blue); /* Jemný rámeček v barvě webu */
-    border-radius: 20px; /* Zaoblené rohy */
+    border: 1px solid var(--blue);
+    border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -447,9 +492,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     box-shadow: 0 2px 5px rgba(0, 52, 155, 0.2);
 }
 
-/* Dark mode úprava */
 [data-theme="dark"] .article-tag {
-    background-color: rgba(66, 107, 184, 0.1); /* Průhledná modrá */
+    background-color: rgba(66, 107, 184, 0.1);
     border-color: var(--blue);
 }
 [data-theme="dark"] .article-tag:hover {
@@ -457,13 +501,16 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     color: white;
 }
 
-/* --- TEXT ČLÁNKU - ODSTAVCE --- */
+/* --- TEXT ČLÁNKU --- */
 .article-content p {
-    margin-bottom: 24px; /* Zvětší mezeru pod každým odstavcem */
-    margin-top: 0;      /* Horní mezeru raději vynulujeme, aby se to nesčítalo */
+    margin-bottom: 24px;
+    margin-top: 0;
 }
 
-/* Volitelné: Pokud bys chtěl odsazení i u nadpisů uvnitř článku */
+.article-content p:empty {
+    display: none;
+}
+
 .article-content h2, 
 .article-content h3 {
     margin-top: 32px;
@@ -471,46 +518,35 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 }
 
 /* --- HOVER EFEKTY PRO KARTY ČLÁNKŮ (FINAL FIX) --- */
-/* Používáme !important, abychom přebili inline styly v HTML */
-
-/* 1. HLAVNÍ ČLÁNEK */
-/* Když je myš na odkazu uvnitř .clickable-area (obrázek nebo nadpis) */
 .main-article-grid:has(.clickable-area a:hover) .headline-main {
     text-decoration: underline !important;
     text-decoration-thickness: 3px !important;
     text-decoration-color: var(--blue) !important;
 }
 
-/* 2. SEKUNDÁRNÍ ČLÁNKY (Tři vedle sebe/pod sebou) */
 .secondary-grid article:has(.clickable-area a:hover) .headline-sub {
     text-decoration: underline !important;
     text-decoration-thickness: 2px !important;
     text-decoration-color: var(--blue) !important;
 }
 
-/* 3. DALŠÍ ZPRÁVY (Seznam) */
-/* Tady to vyřeší problém s kategorií a perexem - ty totiž nejsou v .clickable-area */
 .list-article:has(.clickable-area a:hover) .headline-list {
     text-decoration: underline !important;
     text-decoration-thickness: 2px !important;
     text-decoration-color: var(--blue) !important;
 }
 
-/* 4. KATEGORIE A VÝSLEDKY HLEDÁNÍ */
-/* Zde .clickable-area nemáme, takže použijeme obecný hover na odkaz */
 .cat-article-card:has(a:hover) .cat-headline a {
     text-decoration: underline !important;
     text-decoration-thickness: 2px !important;
     text-decoration-color: var(--blue) !important;
 }
 
-/* Styl pro samotný odkaz "Celý článek" */
 .read-more-link:hover {
     text-decoration: underline !important;
     text-decoration-thickness: 2px !important;
 }
 
-/* Pojistka: Resetování hoveru pro samotné nadpisy, aby nedělaly neplechu */
 .headline-main:hover,
 .headline-sub:hover,
 .headline-list:hover {

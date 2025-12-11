@@ -3,9 +3,6 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-{% set main_article = articles[0] if articles|length > 0 else none %}
-{% set secondary_articles = articles[1:4] if articles|length > 1 else [] %}
-{% set list_articles = articles[4:] if articles|length > 4 else [] %}
 
 {% if main_article %}
 <section class="main-article-grid" style="display:grid;grid-template-columns:0.8fr 1fr;gap:32px;margin-bottom:40px;align-items:start">
@@ -34,28 +31,32 @@
 </section>
 {% endif %}
 
-{% if secondary_articles %}
+{% if promoted_articles | select("ne", none) | list | length > 0 %}
 <section class="secondary-grid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:28px;margin-bottom:50px">
-  {% for article in secondary_articles %}
-  <article>
-    <div class="clickable-area">
-      <a href="{{ url_for('article_detail', article_id=article.id) }}">
-          <img class="img-thumb" src="{{ article.image_url }}" alt="{{ article.title }}" 
-               style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px;">
-      </a>
-      <div style="margin-top:10px">
-          <span class="news-time">{{ article.created_at | format_date }}</span>
-      </div>
-      <h2>
-          <a href="{{ url_for('article_detail', article_id=article.id) }}" class="headline-sub" style="font-size:18px;font-weight:800;margin:8px 0;display:block;color:var(--blue);text-decoration:none;">
-              {{ article.title }}
+  {% for article in promoted_articles %}
+    {% if article %}
+      <article>
+        <div class="clickable-area">
+          <a href="{{ url_for('article_detail', article_id=article.id) }}">
+              <img class="img-thumb" src="{{ article.image_url }}" alt="{{ article.title }}" 
+                   style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:8px;">
           </a>
-      </h2>
-    </div>
-    <p style="color:var(--preview-text);font-size:14px;line-height:1.5;">
-        {{ article.perex[:90] }}...
-    </p>
-  </article>
+          <div style="margin-top:10px">
+              <span class="news-time">{{ article.created_at | format_date }}</span>
+          </div>
+          <h2>
+              <a href="{{ url_for('article_detail', article_id=article.id) }}" class="headline-sub" style="font-size:18px;font-weight:800;margin:8px 0;display:block;color:var(--blue);text-decoration:none;">
+                  {{ article.title }}
+              </a>
+          </h2>
+        </div>
+        <p style="color:var(--preview-text);font-size:14px;line-height:1.5;">
+            {{ article.perex[:90] }}...
+        </p>
+      </article>
+    {% else %}
+      <div class="empty-slot"></div>
+    {% endif %}
   {% endfor %}
 </section>
 {% endif %}

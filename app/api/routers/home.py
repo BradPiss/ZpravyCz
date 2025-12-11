@@ -23,18 +23,24 @@ async def home(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
-    # 1. Načteme články na pevných pozicích
+    # 1. Hlavní článek (Pozice 1)
     main_article = db.query(Article).filter(Article.home_position == 1, Article.status == ArticleStatus.PUBLISHED).first()
     
+    # 2. Sekundární články (Pozice 2, 3, 4)
     secondary_db = db.query(Article).filter(
         Article.home_position.in_([2, 3, 4]), 
         Article.status == ArticleStatus.PUBLISHED
     ).all()
     
+    # Namapujeme články na pozice
     pos_map = {a.home_position: a for a in secondary_db}
-    secondary_articles = [pos_map.get(i) for i in [2, 3, 4] if pos_map.get(i)]
+    
+    # Vytvoříme seznam fixně o 3 prvcích. 
+    # Pokud na pozici nic není, bude tam None. Tím zajistíme, že se mřížka neposune.
+    # Index 0 = Pozice 2 (Vlevo), Index 1 = Pozice 3 (Střed), Index 2 = Pozice 4 (Vpravo)
+    promoted_articles = [pos_map.get(i) for i in [2, 3, 4]]
 
-    # 2. Zbytek (Seznam)
+    # 3. Zbytek (Seznam - Pozice 0)
     list_articles = db.query(Article)\
         .filter(
             Article.status == ArticleStatus.PUBLISHED,
@@ -44,8 +50,9 @@ async def home(
         .limit(50)\
         .all()
 
-    # 3. Fallback
+    # 4. Fallback pro hlavní článek (pokud chybí, vezmeme nejnovější promoted)
     if not main_article:
+        # Zkusíme najít náhradu v historii
         history_fallback = db.query(Article)\
             .filter(
                 Article.status == ArticleStatus.PUBLISHED,
@@ -57,33 +64,21 @@ async def home(
         if history_fallback:
             main_article = history_fallback
 
-    # Pokud stále nic, vezmeme první ze seznamu
-    exclude_ids = [a.id for a in secondary_articles if a]
-    if main_article:
-        exclude_ids.append(main_article.id)
-
-    # Znovu načteme seznam bez vyloučených (aby se neopakovaly)
-    list_articles = db.query(Article)\
-        .filter(
-            Article.status == ArticleStatus.PUBLISHED,
-            Article.home_position == 0,
-            Article.id.notin_(exclude_ids)
-        )\
-        .order_by(Article.created_at.desc())\
-        .limit(50)\
-        .all()
-
+    # Pokud stále nemáme hlavní článek a máme něco v seznamu, vezmeme první ze seznamu
     if not main_article and list_articles:
         main_article = list_articles.pop(0)
 
-    all_articles = []
-    if main_article: all_articles.append(main_article)
-    all_articles.extend(secondary_articles)
-    all_articles.extend(list_articles)
-
+    # Do šablony posíláme proměnné odděleně, ne v jednom balíku "articles"
     return templates.TemplateResponse(
         "index.html", 
-        {"request": request, "title": "Zprávy.cz", "articles": all_articles, "user": user}
+        {
+            "request": request, 
+            "title": "Zprávy.cz", 
+            "main_article": main_article,
+            "promoted_articles": promoted_articles, # Seznam 3 prvků (články nebo None)
+            "list_articles": list_articles,
+            "user": user
+        }
     )
 
 @router.get("/clanek/{article_id}", name="article_detail")
