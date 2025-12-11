@@ -26,4 +26,11 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     # Ale abychom dodrželi architekturu, měli bychom použít repo, 
     # nicméně dependency injection repozitářů je složitější, 
     # takže zde je přímý dotaz přes SQLAlchemy v pořádku (nebo použití User modelu).
-    return db.query(User).filter(User.id == int(user_id)).first()
+    # 1. Musíme vytvořit instanci repozitáře (závorky na konci)
+    user_repo = UserRepository()
+    
+    # 2. Musíme user_id převést na int(), protože v tokenu je to string
+    try:
+        return user_repo.get_by_id(db, int(user_id))
+    except (ValueError, TypeError):
+        return None
