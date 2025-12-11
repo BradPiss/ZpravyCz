@@ -32,7 +32,7 @@ async def logout(response: Response, next: str = None):
 async def register(email: str = Form(...), password: str = Form(...), name: str = Form(...), next: str = Form(None), db: Session = Depends(get_db)):
     user = svc.register(db, email, password, name)
     redirect = next if next else "/"
-    if not user: return RedirectResponse(redirect, 302) # Email existuje (zjednodušeno)
+    if not user: return RedirectResponse(redirect, 302) # Email existuje
     
     token = create_access_token({"sub": str(user.id), "role": user.role})
     resp = RedirectResponse(redirect, 302)

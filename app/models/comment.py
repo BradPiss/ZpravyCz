@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime, timezone
-from app.models.db import Base # <--- Opravený import
+from app.models.db import Base
 
 class Comment(Base):
     __tablename__ = "comments"

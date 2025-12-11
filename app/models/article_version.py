@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from datetime import datetime, timezone
-from app.models.db import Base # <--- Opravený import
+from app.models.db import Base
 
 class ArticleVersion(Base):
     __tablename__ = "article_versions"
@@ -13,3 +13,6 @@ class ArticleVersion(Base):
     perex = Column(String)
     content = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+
+    #/--- Tohle jsem nestihl naimplementovat :( ---/

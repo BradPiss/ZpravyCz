@@ -1,12 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum as SqEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.models.db import Base # <--- ZMĚNA
+from app.models.db import Base
 from app.models.enums import ArticleStatus
 from app.models.tag import article_tags
-# Importujeme saved_articles, abychom o něm věděli, ale pozor na cyklické importy.
-# V tomto případě je lepší definovat relationship v user.py a zde jen backref,
-# nebo importovat až uvnitř, pokud to zlobí. Ale zkusíme takto:
 from app.models.user import saved_articles 
 
 class Article(Base):

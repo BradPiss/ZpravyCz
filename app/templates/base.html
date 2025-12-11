@@ -133,7 +133,7 @@
         let dateString = new Date().toLocaleDateString('cs-CZ', dateOptions);
         document.getElementById('currentDate').textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
 
-        // --- THEME ---
+        // --- SVĚTLÝ/TMAVÝ REŽIM ---
         const htmlEl = document.documentElement;
         const toggleBtn = document.getElementById('themeToggle');
         const themeIconSvg = document.getElementById('themeIcon');
@@ -153,7 +153,7 @@
             themeIconSvg.innerHTML = next === 'dark' ? moonIcon : sunIcon;
         });
 
-        // --- DROPDOWN LOGIKA (Obecná funkce pro otevření/zavření) ---
+        // --- DROPDOWN LOGIKA ---
         function setupDropdown(btnId, dropdownId) {
             const btn = document.getElementById(btnId);
             const dropdown = document.getElementById(dropdownId);
@@ -161,7 +161,6 @@
             if (btn && dropdown) {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    // Zavřít ostatní dropdowny (pokud by jich bylo víc)
                     document.querySelectorAll('.dropdown-content').forEach(d => {
                         if (d !== dropdown) d.classList.remove('show');
                     });
@@ -170,18 +169,16 @@
             }
         }
 
-        // Aktivace dropdownů
         setupDropdown('signinBtn', 'signinDropdown');
         setupDropdown('userBtn', 'userDropdown');
 
-        // Kliknutí vedle zavře vše
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.signin-wrap')) {
                 document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
             }
         });
 
-        // Přepínače formulářů (Login/Register)
+        // Přepínač Login/Register
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         const showLoginBtn = document.getElementById('showLoginBtn');
         const loginWrapper = document.getElementById('loginFormWrapper');
@@ -203,7 +200,6 @@
         }
 
         // --- DETEKCE CHYBY PŘIHLÁŠENÍ ---
-        // Pokud URL obsahuje ?error=..., otevřeme dropdown a ukážeme chybu
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('error')) {
             const dropdown = document.getElementById('signinDropdown');
@@ -211,12 +207,11 @@
             if (dropdown && errorMsg) {
                 dropdown.classList.add('show');
                 errorMsg.style.display = 'block';
-                // Vyčistit URL (aby to tam nestrašilo po refresh)
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
         }
 
-        // --- SEARCH TOGGLE ---
+        // --- VYHLEDÁVÁNÍ ---
         const searchBtn = document.getElementById('searchToggle');
         const searchForm = document.getElementById('searchForm');
         const searchInput = document.getElementById('searchInput');
@@ -227,19 +222,16 @@
                 const isActive = searchForm.classList.contains('active');
                 
                 if (isActive) {
-                    // Pokud je aktivní a prázdné, zavřeme. Pokud je tam text, odešleme?
-                    // Zde raději jen toggle chování:
                     searchForm.classList.remove('active');
                 } else {
                     searchForm.classList.add('active');
-                    searchInput.focus(); // Hned focus do pole
+                    searchInput.focus();
                 }
             });
 
-            // Kliknutí mimo formulář ho zavře
+            // Zavřít když kliknu mimo
             document.addEventListener('click', (e) => {
                 if (searchForm.classList.contains('active')) {
-                    // Pokud kliknutí nebylo uvnitř formuláře ani na tlačítku
                     if (!searchForm.contains(e.target) && !searchBtn.contains(e.target)) {
                         searchForm.classList.remove('active');
                     }

@@ -7,9 +7,6 @@ from app.models.user import User
 from app.models.enums import Role
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | None:
-    """
-    Vrátí přihlášeného uživatele nebo None.
-    """
     token = request.cookies.get("access_token")
     if not token:
         return None
@@ -28,12 +25,8 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User | 
     except (ValueError, TypeError):
         return None
 
-# NOVÉ: Centralizovaná kontrola oprávnění
+# --------- KONTROLA OPRÁVNĚNÍ ----------
 def get_current_admin_editor(user: User = Depends(get_current_user)) -> User:
-    """
-    Ověří, zda je uživatel přihlášen a má práva vstoupit do administrace.
-    Pokud ne, vyhodí 403 (kterou pak router odchytí nebo vyřeší).
-    """
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Nepřihlášen")
     
@@ -43,7 +36,6 @@ def get_current_admin_editor(user: User = Depends(get_current_user)) -> User:
     return user
 
 def get_current_super_admin(user: User = Depends(get_current_user)) -> User:
-    """Pouze pro hlavního admina (správa uživatelů)."""
     if not user or user.role != Role.ADMIN:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Pouze pro administrátory.")
     return user

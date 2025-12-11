@@ -1,6 +1,4 @@
-/* 1. RESET A FONT (Vynucení Interu všude + Náhrada za Tailwind Preflight) */
 
-/* Toto pravidlo zajistí, že padding neroztahuje elementy (oprava velikosti widgetu) */
 *, ::before, ::after {
     box-sizing: border-box;
     border-width: 0;
@@ -37,7 +35,6 @@ img {
     height: auto;
 }
 
-/* --- FIX PROTI POSKAKOVÁNÍ STRÁNKY --- */
 html {
     scrollbar-gutter: stable;
     line-height: 1.5;
@@ -89,7 +86,7 @@ body {
 .site-logo { height: 48px; width: auto; display: block; object-fit: contain; cursor: pointer; }
 .header-date { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
 
-/* Theme toggle */
+/* Svelty/Tmavy rezim */
 .theme-toggle { background: none; border: 0; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; opacity: 1; }
 .theme-toggle:hover { opacity: 0.7; }
 .theme-toggle svg { width: 24px; height: 24px; transition: fill 0.3s ease; }
@@ -98,7 +95,7 @@ body {
 /* Layout */
 main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 
-/* Article Lists */
+/* Seznam clanku */
 .news-time { background: var(--blue); color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
 .img-list { width: 220px; aspect-ratio: 3/2; object-fit: cover; border-radius: 6px; flex-shrink: 0; background-color: var(--border); }
 
@@ -115,7 +112,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 .headline-list:hover { text-decoration: underline; text-decoration-thickness: 2px; }
 .list-preview { color: var(--preview-text); font-size: 14px; line-height: 1.5; margin-top: 8px; transition: color 0.3s ease; }
 
-/* --- TLAČÍTKO ZOBRAZIT DALŠÍ (LOAD MORE) --- */
+/* --- TLAČÍTKO ZOBRAZIT DALŠÍ --- */
 .load-more-btn {
     display: flex;
     align-items: center;
@@ -139,7 +136,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Responsive */
+/* Responzivita */
 @media (max-width: 600px) {
     .header-inner { flex-direction: row; gap: 8px; padding: 14px 10px; }
     .site-logo { height: 32px; }
@@ -148,7 +145,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     .img-list { width: 100%; aspect-ratio: 16/9; }
 }
 
-/* --- CATEGORY PAGE STYLES --- */
+/* --- STRÁNKA KATEGORIE --- */
 .category-header { margin-bottom: 40px; border-bottom: 3px solid var(--blue); padding-bottom: 20px; }
 
 .cat-article-card {
@@ -179,12 +176,11 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     .cat-img-wrapper { width: 100%; }
 }
 
-/* Sjednocený kontejner */
 .page-container { max-width: 800px; margin: 0 auto; padding: 0 20px 40px 20px; }
 .article-page { padding-top: 0 !important; margin-top: 0 !important; }
 .hidden-article { display: none !important; }
 
-/* --- LOGIN & USER DROPDOWN --- */
+/* --- LOGIN A MENU DROPDOWN --- */
 .signin-wrap { position: relative; }
 .signin-btn { background: none; border: 0; color: var(--blue); font-weight: 700; cursor: pointer; font-size: 15px; padding: 8px; transition: opacity 0.3s ease; }
 .signin-btn:hover { opacity: 0.7; }
@@ -383,7 +379,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
 
 .support-note { font-size: 11px; color: var(--muted); text-align: left; line-height: 1.4; margin: 0; }
 
-/* --- SEARCH WIDGET --- */
+/* --- VYHLEDAVANI --- */
 .search-wrapper {
     position: relative;
     display: flex;
@@ -450,7 +446,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     .search-form.active { max-width: calc(100vw - 160px); }
 }
 
-/* --- ARTIKLE TAGS --- */
+/* --- TAGY --- */
 .article-tags-wrapper {
     display: flex;
     align-items: center;
@@ -517,7 +513,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px; }
     margin-bottom: 16px;
 }
 
-/* --- HOVER EFEKTY PRO KARTY ČLÁNKŮ (FINAL FIX) --- */
+/* --- HOVER EFEKT POD NADPISY --- */
 .main-article-grid:has(.clickable-area a:hover) .headline-main {
     text-decoration: underline !important;
     text-decoration-thickness: 3px !important;

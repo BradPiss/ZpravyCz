@@ -1,7 +1,6 @@
 import sys
 import os
 
-# Přidání kořenového adresáře do cesty pro importy
 sys.path.append(os.path.join(os.path.dirname(__file__), '../../'))
 
 from datetime import datetime, timezone, timedelta
@@ -12,7 +11,6 @@ from app.models.article import Article
 from app.models.category import Category
 from app.models.enums import Role, ArticleStatus
 
-# --- DATA Z TVÉ DATABÁZE ---
 articles_data = [
     {
         'title': 'Optimismus investorů žene americké akcie k historickým maximům',
@@ -55,7 +53,7 @@ articles_data = [
         'perex': 'Cena másla v českých obchodech opět roste a překročila hranici 60 korun. Ekonomové varují, že před Vánoci může zdražování základních potravin pokračovat.',
         'content': '<p>Podle údajů Českého statistického úřadu zdražilo máslo meziměsíčně o téměř deset procent. Mlékárny tento nárůst zdůvodňují nižší tučností mléka v letních měsících a cenami energií.</p>',
         'image_url': 'https://d15-a.sdn.cz/d_15/c_img_m3_A/nEEmzB06yDtMFlcR24Hy/aabd.jpeg',
-        'image_caption': 'Ilustrační foto',
+        'image_caption': 'Ilustrační snímek',
         'category_name': 'Ekonomika',
         'home_position': 0
     },
@@ -129,11 +127,10 @@ def reset_database():
     print("🏗️  Vytváření tabulek...")
     Base.metadata.create_all(bind=engine)
     
-    # Vytvoření session
     db = SessionLocal()
     
     print("👤 Vytváření uživatelů...")
-    # Všichni budou mít heslo: heslo123
+
     default_pw = hash_password("heslo123")
     
     users = [
@@ -148,7 +145,6 @@ def reset_database():
     db.add_all(users)
     db.commit()
     
-    # Uložíme si redaktora pro přiřazení článků
     redaktor = users[2] 
     
     print("📂 Vytváření kategorií...")
@@ -167,7 +163,6 @@ def reset_database():
     
     for i, data in enumerate(articles_data):
         cat = categories.get(data['category_name'])
-        # Nastavíme datum tak, aby ty s vyšší pozicí byly novější
         article_time = now - timedelta(hours=i*2) 
         
         last_promoted = article_time if data['home_position'] > 0 else None

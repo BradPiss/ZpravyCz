@@ -48,7 +48,6 @@ class ArticleRepository:
         return tag
     
     def get_by_category(self, db: Session, category_id: int, limit: int = 4, exclude_id: int = None):
-        """Načte publikované články z konkrétní kategorie (bez ohledu na pozici na HP)."""
         query = db.query(Article).filter(
             Article.status == ArticleStatus.PUBLISHED,
             Article.category_id == category_id

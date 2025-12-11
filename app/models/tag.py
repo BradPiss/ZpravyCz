@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Table, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.db import Base # <--- Opravený import
+from app.models.db import Base
 
 article_tags = Table(
     "article_tags",

@@ -35,7 +35,6 @@ async def article_detail(request: Request, article_id: int, db: Session = Depend
 
 @router.get("/kategorie/{category_id}", name="category_detail")
 async def category_detail(request: Request, category_id: int, db: Session = Depends(get_db), user = Depends(get_current_user)):
-    # OPRAVA: Používáme metodu služby, ne přímý přístup k repozitáři
     data = svc.get_category_detail(db, category_id)
     
     if not data: 
@@ -45,7 +44,7 @@ async def category_detail(request: Request, category_id: int, db: Session = Depe
         "request": request, 
         "title": f"{data['category'].name} | Zprávy.cz", 
         "user": user,
-        **data # Rozbalí: category, articles
+        **data
     })
 
 @router.get("/hledat")

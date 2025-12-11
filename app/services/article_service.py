@@ -12,7 +12,7 @@ class ArticleService:
         self.repo = ArticleRepository()
         self.cat_repo = CategoryRepository()
         self.comment_repo = CommentRepository()
-        self.vote_repo = VoteRepository() # Kvůli mazání článku (smazat i hlasy)
+        self.vote_repo = VoteRepository() # Kvuli mazani clanku
 
     def get_all_for_admin(self, db: Session):
         return self.repo.get_all_admin(db)
@@ -20,7 +20,7 @@ class ArticleService:
     def get_by_id(self, db: Session, article_id: int):
         return self.repo.get_by_id(db, article_id)
     
-    # --- READ (Home & Detail) ---
+    # -- READ (Home & Detail) ---
     def get_homepage_data(self, db: Session):
         main_article = self.repo.get_published_by_position(db, 1)
         
@@ -50,7 +50,6 @@ class ArticleService:
             "list_articles": list_articles
         }
 
-    # TATO METODA TI CHYBĚLA:
     def get_detail(self, db: Session, article_id: int):
         article = self.repo.get_by_id(db, article_id)
         if not article:
@@ -82,9 +81,8 @@ class ArticleService:
     def search(self, db: Session, query: str):
         return self.repo.search(db, query)
 
-    # --- WRITE (Admin) ---
+    # --- WRITE ---
     def create_article(self, db: Session, data: dict, user_id: int):
-        # Logika pro home_position
         if data.get('home_position', 0) > 0 and data.get('status') == ArticleStatus.PUBLISHED.value:
             old = self.repo.get_published_by_position(db, data['home_position'])
             if old:

@@ -9,4 +9,4 @@ class Role(str, Enum):
 class ArticleStatus(str, Enum):
     DRAFT = "draft"
     PUBLISHED = "published"
-    ARCHIVED = "archived"
+    ARCHIVED = "archived" ## Zatim se nepouziva
