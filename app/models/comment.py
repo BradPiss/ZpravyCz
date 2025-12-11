@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, backref
 from datetime import datetime, timezone
-from app.core.database import Base
+from app.models.db import Base # <--- Opravený import
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -10,8 +10,6 @@ class Comment(Base):
     content = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     is_visible = Column(Boolean, default=True)
-    
-    # Počítadla (jen pro rychlé čtení)
     likes = Column(Integer, default=0)
     dislikes = Column(Integer, default=0)
 
@@ -22,15 +20,12 @@ class Comment(Base):
     author = relationship("User", back_populates="comments")
     article = relationship("Article", back_populates="comments")
     
-    # 1. FIX PRO ODPOVĚDI: Kaskádové mazání (Smažeš komentář -> smažou se odpovědi)
     replies = relationship(
         "Comment", 
         backref=backref("parent", remote_side=[id]), 
         cascade="all, delete-orphan" 
     )
 
-    # 2. FIX PRO LAJKY (TOTO JE TO HLAVNÍ):
-    # Definujeme vztah k Vote a říkáme: "Když smažeš mě, smaž i moje lajky"
     votes_rel = relationship(
         "Vote",
         backref="comment",

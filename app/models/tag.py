@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, Table, ForeignKey
 from sqlalchemy.orm import relationship
-from app.core.database import Base
+from app.models.db import Base # <--- Opravený import
 
-# Asociační tabulka pro vazbu M:N (Článek <-> Tag)
 article_tags = Table(
     "article_tags",
     Base.metadata,
@@ -16,5 +15,4 @@ class Tag(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
 
-    # Vazba na články (M:N)
     articles = relationship("Article", secondary=article_tags, back_populates="tags")

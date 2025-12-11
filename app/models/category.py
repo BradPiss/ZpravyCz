@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from app.core.database import Base
+from app.models.db import Base # <--- Opravený import
 
 class Category(Base):
     __tablename__ = "categories"
@@ -9,5 +9,4 @@ class Category(Base):
     name = Column(String, unique=True, index=True)
     description = Column(String, nullable=True)
 
-    # Vazba na články (1:N)
     articles = relationship("Article", back_populates="category")

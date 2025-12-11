@@ -1,8 +1,9 @@
 from fastapi import Request, Depends
 from sqlalchemy.orm import Session
-from app.core.database import get_db
+from app.models.db import get_db # <--- ZMĚNA (bylo app.core.database)
 from app.core.security import decode_access_token
 from app.models.user import User
+from app.repositories.user_repository import UserRepository
 
 def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
@@ -21,5 +22,8 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
     if not user_id:
         return None
         
-    user = db.query(User).filter(User.id == int(user_id)).first()
-    return user
+    # Použijeme repozitář pro čistotu, nebo přímý dotaz (zde stačí přímý pro rychlost/závislost)
+    # Ale abychom dodrželi architekturu, měli bychom použít repo, 
+    # nicméně dependency injection repozitářů je složitější, 
+    # takže zde je přímý dotaz přes SQLAlchemy v pořádku (nebo použití User modelu).
+    return db.query(User).filter(User.id == int(user_id)).first()

@@ -1,10 +1,13 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum as SqEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.core.database import Base
+from app.models.db import Base # <--- ZMĚNA
 from app.models.enums import ArticleStatus
 from app.models.tag import article_tags
-from app.models.user import saved_articles
+# Importujeme saved_articles, abychom o něm věděli, ale pozor na cyklické importy.
+# V tomto případě je lepší definovat relationship v user.py a zde jen backref,
+# nebo importovat až uvnitř, pokud to zlobí. Ale zkusíme takto:
+from app.models.user import saved_articles 
 
 class Article(Base):
     __tablename__ = "articles"
@@ -14,15 +17,12 @@ class Article(Base):
     perex = Column(String)
     content = Column(Text)
     image_url = Column(String, nullable=True)
-    
-    # NOVÉ: Popisek obrázku (nepovinný)
     image_caption = Column(String, nullable=True)
     
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     
     status = Column(SqEnum(ArticleStatus), default=ArticleStatus.DRAFT)
-    
     home_position = Column(Integer, default=0, index=True)
     last_promoted_at = Column(DateTime, nullable=True)
 

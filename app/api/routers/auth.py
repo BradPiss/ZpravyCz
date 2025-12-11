@@ -1,84 +1,40 @@
-from fastapi import APIRouter, Depends, Form, status, Response, Query
+from fastapi import APIRouter, Depends, Form, status, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.user import User
-from app.models.enums import Role
-from app.core.security import verify_password, create_access_token, hash_password
-from app.core.config import settings
+from app.models.db import get_db
+from app.services.auth_service import AuthService
+from app.core.security import create_access_token
 from datetime import timedelta
-from typing import Optional
+from app.core.config import settings
 
 router = APIRouter()
+svc = AuthService()
 
 @router.post("/login")
-async def login(
-    response: Response,
-    username: str = Form(...),
-    password: str = Form(...),
-    next: Optional[str] = Form(None), # Přijímáme parametr 'next' z formuláře
-    db: Session = Depends(get_db)
-):
-    user = db.query(User).filter(User.email == username).first()
+async def login(response: Response, username: str = Form(...), password: str = Form(...), next: str = Form(None), db: Session = Depends(get_db)):
+    user = svc.authenticate(db, username, password)
+    redirect = next if next else "/"
+    if not user:
+        return RedirectResponse(f"{redirect}?error=invalid_credentials" if "?" not in redirect else f"{redirect}&error=invalid_credentials", 302)
     
-    # Určení, kam přesměrovat (buď na 'next', nebo na HP)
-    redirect_url = next if next else "/"
-
-    if not user or not verify_password(password, user.password_hash):
-        # Při chybě vrátíme tam, odkud přišel, ale s chybou
-        error_url = f"{redirect_url}?error=invalid_credentials" if "?" not in redirect_url else f"{redirect_url}&error=invalid_credentials"
-        return RedirectResponse(url=error_url, status_code=status.HTTP_302_FOUND)
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id), "role": user.role},
-        expires_delta=access_token_expires
-    )
-    
-    # Úspěch -> jdeme na původní stránku
-    resp = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-    resp.set_cookie(key="access_token", value=access_token, httponly=True)
+    token = create_access_token({"sub": str(user.id), "role": user.role}, timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+    resp = RedirectResponse(redirect, 302)
+    resp.set_cookie(key="access_token", value=token, httponly=True)
     return resp
 
 @router.get("/logout")
-async def logout(
-    response: Response, 
-    next: Optional[str] = Query(None) # Přijímáme 'next' z URL (?next=...)
-):
-    redirect_url = next if next else "/"
-    resp = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+async def logout(response: Response, next: str = None):
+    resp = RedirectResponse(next if next else "/", 302)
     resp.delete_cookie("access_token")
     return resp
 
 @router.post("/registrace")
-async def register(
-    email: str = Form(...),
-    password: str = Form(...),
-    name: str = Form(...),
-    next: Optional[str] = Form(None),
-    db: Session = Depends(get_db)
-):
-    redirect_url = next if next else "/"
-
-    if db.query(User).filter(User.email == email).first():
-        # Pokud mail existuje, vrátíme se s chybou (zjednodušeno)
-        return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-
-    new_user = User(
-        email=email,
-        name=name,
-        password_hash=hash_password(password),
-        role=Role.READER,
-        is_active=True
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    access_token = create_access_token(
-        data={"sub": str(new_user.id), "role": new_user.role}
-    )
+async def register(email: str = Form(...), password: str = Form(...), name: str = Form(...), next: str = Form(None), db: Session = Depends(get_db)):
+    user = svc.register(db, email, password, name)
+    redirect = next if next else "/"
+    if not user: return RedirectResponse(redirect, 302) # Email existuje (zjednodušeno)
     
-    resp = RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
-    resp.set_cookie(key="access_token", value=access_token, httponly=True)
+    token = create_access_token({"sub": str(user.id), "role": user.role})
+    resp = RedirectResponse(redirect, 302)
+    resp.set_cookie(key="access_token", value=token, httponly=True)
     return resp
